@@ -5,7 +5,7 @@
     <SystemStartScript/>
   </DisplayManager>
   <General>
-    <HarmonyPath path="../../../../../microchip/harmony/v1_09"/>
+    <HarmonyPath path="../../../../../../microchip/harmony/v1_09"/>
     <Processor name=""/>
     <ForceOptimization flag="true"/>
     <MergeStrategy flag="USER_ALL"/>
@@ -69,10 +69,6 @@
         <Path>Header Files/framework/system/clk</Path>
       </File>
       <File>
-        <Name>sys_msg.c</Name>
-        <Path>Source Files/framework/system/msg/src</Path>
-      </File>
-      <File>
         <Name>port.c</Name>
         <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MX</Path>
       </File>
@@ -99,10 +95,6 @@
       <File>
         <Name>task.h</Name>
         <Path>Header Files/FreeRTOS</Path>
-      </File>
-      <File>
-        <Name>sys_msg_local.h</Name>
-        <Path>Header Files/framework/system/msg/src</Path>
       </File>
       <File>
         <Name>sys_int.h</Name>
@@ -197,10 +189,6 @@
         <Path>Header Files/framework/system/int</Path>
       </File>
       <File>
-        <Name>sys_msg.h</Name>
-        <Path>Header Files/framework/system/msg</Path>
-      </File>
-      <File>
         <Name>FreeRTOS.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
@@ -215,10 +203,6 @@
       <File>
         <Name>event_groups.c</Name>
         <Path>Source Files/FreeRTOS</Path>
-      </File>
-      <File>
-        <Name>sys_msg_config.h</Name>
-        <Path>Header Files/framework/system/msg/config</Path>
       </File>
       <File>
         <Name>sys_debug.h</Name>
@@ -280,12 +264,12 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>68479E82827CAFFEBA6E293D87D26E06</Checksum>
+        <Checksum>24D4FBBB2B639D51F761F157241424DF</Checksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>C952F6F89E842E609E4C202398C7DCFF</Checksum>
+        <Checksum>49E1D79515E4FAFAF2C7B504336BD46C</Checksum>
       </Template>
       <Template>
         <Name>app.c</Name>
@@ -300,7 +284,7 @@
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>7F6427874FE9D30F12D8BE5FC1737A76</Checksum>
-        <ProjectFileChecksum>D64C2FE98D0F5AF2DFC3D2674595335F</ProjectFileChecksum>
+        <ProjectFileChecksum>CDA22BEEC32589CABB5F8D0052C3F751</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_tmr_static.h</Name>
@@ -310,7 +294,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>1899EE24B3247E7A82146C06E950D463</Checksum>
+        <Checksum>4B68ED8EDD827DA1E9709A925A10ECBA</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -335,12 +319,12 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>7E98419F7E0341B27FDDCC6D09C3E84A</Checksum>
+        <Checksum>9A607BD99A0653DCBF8BA71A38D0B4CA</Checksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>A485E37FF79C01217D234BF896379E44</Checksum>
+        <Checksum>8EF63CA106EC9D232898405F0A4B3E36</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -374,24 +358,24 @@
     </Templates>
     <CompilerItems>
       <C32-AS>
-        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\School\ECE_4534\Projects\Test\TestProject\firmware\src"/>
-        <Include value="C:\School\ECE_4534\Projects\Test\TestProject\firmware\src\system_config\milestone1"/>
-        <Include value="C:\School\ECE_4534\Projects\Test\TestProject\firmware\src\milestone1"/>
+        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src"/>
+        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\system_config\milestone1"/>
+        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\milestone1"/>
         <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\School\ECE_4534\Projects\Test\TestProject\firmware\src\system_config\milestone1\framework"/>
-        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\system_config\milestone1\framework"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
         <Define value="__XC"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

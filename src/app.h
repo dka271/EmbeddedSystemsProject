@@ -62,6 +62,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/clk/sys_clk.h"
 #include "driver/usart/drv_usart.h"
 #include "system/devcon/sys_devcon.h"
+#include <sys/appio.h>
+#include <GenericTypeDefs.h>
+#include "system/common/sys_module.h"
+#include "system/msg/sys_msg.h"
 #include "debug.h"
 
 // DOM-IGNORE-BEGIN
@@ -170,7 +174,10 @@ typedef struct
 
 void APP_Initialize ( void );
 
-int app1Iter;
+//void app1SendMsgFromISR(unsigned int msg);
+
+//int app1Iter;
+//QueueHandle_t gpioQueue;
 
 
 /*******************************************************************************

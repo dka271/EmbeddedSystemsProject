@@ -94,11 +94,6 @@ extern "C" {
 #define SYS_PORT_CNPUE          0x0
 #define SYS_PORT_CNEN           0x0
 
-/*** Message System Service Configuration ***/
-
-#define SYS_MSG_MAX_MAILBOXES        2
-#define SYS_MSG_MAX_TYPES            2
-
 
 // *****************************************************************************
 // *****************************************************************************

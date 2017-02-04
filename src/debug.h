@@ -80,7 +80,18 @@ extern "C" {
 #define EXAMPLE_CONSTANT 0
     
 //Constants that refer to specific parts of the code
-#define LOC_DBG_PAUSE_ALL 1
+#define DBG_LOC_PAUSE_ALL 1
+#define DBG_LOC_TMR0_ISR_ENTER 2
+#define DBG_LOC_TMR0_ISR_EXIT 3
+#define DBG_LOC_TMR0_ISR_BEFORE_SEND 4
+#define DBG_LOC_TMR0_ISR_AFTER_SEND 5
+#define DBG_LOC_APP1_ENTER 6
+#define DBG_LOC_APP1_BEFORE_WHILE 7
+#define DBG_LOC_APP1_BEFORE_SEND 8
+#define DBG_LOC_APP1_BEFORE_RECEIVE 9
+#define DBG_LOC_APP1_AFTER_RECEIVE 10
+#define DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_ENTER 11
+#define DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_EXIT 12
 
 
     // *****************************************************************************

@@ -54,6 +54,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
 #include "app.h"
+#include "app_public.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -104,6 +105,9 @@ APP_DATA appData;
 // *****************************************************************************
 // *****************************************************************************
 
+int app1Iter;
+static QueueHandle_t gpioQueue;
+
 /*******************************************************************************
   Function:
     void APP_Initialize ( void )
@@ -116,15 +120,30 @@ void APP_Initialize ( void )
 {
     /* Place the App state machine in its initial state. */
     appData.state = APP_STATE_INIT;
+    Nop();
     
-    app1Iter = 0;
-    bool thing = DRV_TMR0_Start();
+    gpioQueue = xQueueCreate(10, sizeof(unsigned int));
+    if(gpioQueue == 0){
+        dbgPauseAll();
+    }
+    
+    //bool thing = DRV_TMR0_Start();
     //DRV_USART0_Open();
-
+    
     
     /* TODO: Initialize your application's state machine and other
      * parameters.
      */
+}
+
+void app1SendMsgFromISR(unsigned int msg){
+    dbgOutputLoc(DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_ENTER);
+    BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
+   //xQueueSendFromISR(gpioQueue, (void *) &msg, &xHigherPriorityTaskWoken);//&xHigherPriorityTaskWoken);
+     //xQueueSendFromISR(gpioQueue, &msg, &xHigherPriorityTaskWoken);
+    //xQueueSendFromISR(gpioQueue, &msg, NULL);
+    xQueueSendToBackFromISR(gpioQueue, &msg, NULL);
+    dbgOutputLoc(DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_EXIT);
 }
 
 
@@ -138,6 +157,7 @@ void APP_Initialize ( void )
 
 void APP_Tasks ( void )
 {
+    dbgOutputLoc(DBG_LOC_APP1_ENTER);
 
     /* Check the application's current state. */
     switch ( appData.state )
@@ -159,15 +179,58 @@ void APP_Tasks ( void )
         case APP_STATE_SERVICE_TASKS:
         {
                 
+                unsigned int receivemsg;
+                unsigned int testq = 1;
+                app1Iter = 0;
+                bool thing = DRV_TMR0_Start();
+                dbgOutputLoc(DBG_LOC_APP1_BEFORE_WHILE);
                 while(1){
-                    dbgUARTVal(0x54);
-                    dbgUARTVal(0x65);
-                    dbgUARTVal(0x61);
-                    dbgUARTVal(0x6D);
-                    dbgUARTVal(0x20);
-                    dbgUARTVal(0x37);
-                    dbgUARTVal(0x0A);
-                    dbgUARTVal(0x0D);
+                    //Nop();
+                    dbgOutputLoc(DBG_LOC_APP1_BEFORE_RECEIVE);
+                    BaseType_t receiveCheck = xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY);
+                    dbgOutputLoc(DBG_LOC_APP1_AFTER_RECEIVE);
+//                    xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY);
+                    //if(xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY) == pdTRUE){
+                    
+                    if(receiveCheck == pdTRUE){
+                        //Nop();
+                        if (receivemsg == 1){
+                            //Nop();
+                            if (app1Iter == 0){
+                                dbgOutputVal(0x54);
+                                dbgUARTVal(0x54);
+                                //dbgOutputLoc(0x54);
+                                app1Iter++;
+                            } else if (app1Iter == 1){
+                                dbgOutputVal(0x65);
+                                dbgUARTVal(0x65);
+                                //dbgOutputLoc(0x65);
+                                app1Iter++;
+                            } else if (app1Iter == 2){
+                                dbgOutputVal(0x61);
+                                dbgUARTVal(0x61);
+                                //dbgOutputLoc(0x61);
+                                app1Iter++;
+                            } else if (app1Iter == 3){
+                                dbgOutputVal(0x6D);
+                                dbgUARTVal(0x6D);
+                                //dbgOutputLoc(0x6D);
+                                app1Iter++;
+                            } else if (app1Iter == 4){
+                                dbgOutputVal(0x20);
+                                dbgUARTVal(0x20);
+                                //dbgOutputLoc(0x20);
+                                app1Iter++;
+                            } else {
+                                dbgOutputVal(0x37);
+                                dbgUARTVal(0x37);
+                                //dbgOutputLoc(0x37);
+                                app1Iter = 0;
+                            }
+                        }
+                    }else{
+                        Nop();
+                    }
                     
                 }
         

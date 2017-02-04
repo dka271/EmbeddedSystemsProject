@@ -63,7 +63,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 
 
-#include "system/msg/sys_msg.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "app.h"
@@ -103,7 +102,6 @@ typedef struct
     SYS_MODULE_OBJ  sysDevcon;
     SYS_MODULE_OBJ  drvTmr0;
     SYS_MODULE_OBJ  drvUsart0;
-    SYS_MODULE_OBJ  sysMsg0;
 
 } SYSTEM_OBJECTS;
 

@@ -61,7 +61,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include <xc.h>
 #include <sys/attribs.h>
-#include "app.h"
+#include "app_public.h"
 #include "system_definitions.h"
 
 // *****************************************************************************
@@ -73,39 +73,15 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     
 void IntHandlerDrvTmrInstance0(void)
 {
-    if (app1Iter == 0){
-        dbgOutputVal(0x54);
-        //dbgUARTVal(0x54);
-        dbgOutputLoc(0x54);
-        app1Iter++;
-    } else if (app1Iter == 1){
-        dbgOutputVal(0x65);
-        //dbgUARTVal(0x65);
-        dbgOutputLoc(0x65);
-        app1Iter++;
-    } else if (app1Iter == 2){
-        dbgOutputVal(0x61);
-        //dbgUARTVal(0x61);
-        dbgOutputLoc(0x61);
-        app1Iter++;
-    } else if (app1Iter == 3){
-        dbgOutputVal(0x6D);
-        //dbgUARTVal(0x6D);
-        dbgOutputLoc(0x6D);
-        app1Iter++;
-    } else if (app1Iter == 4){
-        dbgOutputVal(0x20);
-        //dbgUARTVal(0x20);
-        dbgOutputLoc(0x20);
-        app1Iter++;
-    } else {
-        dbgOutputVal(0x37);
-        //dbgUARTVal(0x37);
-        dbgOutputLoc(0x37);
-        app1Iter = 0;
-    }
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
+    //char msg[5] = "Send";
+    unsigned int msg = 1;
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
+    app1SendMsgFromISR(msg);
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
     
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_EXIT);
 }
 
 /*******************************************************************************

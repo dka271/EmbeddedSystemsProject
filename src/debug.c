@@ -64,11 +64,73 @@ int global_data;
 /* ************************************************************************** */
 
     void dbgOutputVal(unsigned char outVal){
-        TRISECLR = 0x00FF;
-        ODCECLR  = 0x00FF;
+        //TRISCCLR = 0x0008;
+        //ODCCCLR = 0x0008;
+        TRISFCLR = 0x0003;
+        ODCFCLR = 0x0003;
+        TRISGCLR = 0x0300;
+        ODCGCLR = 0x0300;
+        TRISDCLR = 0x0940;
+        ODCDCLR = 0x0940;
+        TRISACLR = 0x0400;
+        ODCACLR = 0x0400;
         
-        LATECLR = 0x00FF;
-        LATESET = outVal;
+        LATDCLR = 0x0940;
+        unsigned short D = 0x0000;
+        D |= (outVal & 0x01) << 6;
+        D |= (outVal & 0x08) << 8;
+        D |= (outVal & 0x10) << 4;
+        LATDSET = D;
+        
+        LATACLR = 0x0400;
+        LATASET = (outVal & 0x02) << 9;
+        
+        //LATCCLR = 0x0008;
+        //LATCSET = (outVal & 0x02) << 2;
+        
+        LATFCLR = 0x0003;
+        //unsigned short B = 0x0000;
+        //B |= (outVal & 0x04) << 1;
+        //B |= (outVal & 0xC0) >> 6;
+        LATFSET = (outVal & 0xC0) >> 6;
+        
+        LATGCLR = 0x0300;
+        unsigned short G = 0x0000;
+        G |= (outVal & 0x04) << 6;
+        //G |= (outVal & 0x08);
+        //G |= (outVal & 0x10) >> 2;
+        G |= (outVal & 0x20) << 4;
+        LATGSET = G;
+        
+        /*TRISFCLR = 0x0002;
+        ODCFCLR = 0x0002;
+        TRISDCLR = 0x0940;
+        ODCDCLR = 0x0940;
+        TRISGCLR = 0x03C0;
+        ODCGCLR = 0x03C0;
+        
+        LATFCLR = 0x0002;
+        LATFSET = (outVal & 0x01) << 1;
+        
+        LATDCLR = 0x0940;
+        char D = 0x00;
+        D |= (outVal & 0x02) << 5;
+        D |= (outVal & 0x04) << 6;
+        D |= (outVal & 0x08) << 8;
+        LATDSET = D;
+        
+        LATGCLR = 0x03C0;
+        char G = 0x00;
+        G |= (outVal & 0x30) << 3;
+        G |= (outVal & 0x40);
+        G |= (outVal & 0x80) << 2;
+        LATGSET = G;*/
+        
+        /*TRISDCLR = 0x00FF;
+        ODCDCLR  = 0x00FF;
+        
+        LATDCLR = 0x00FF;
+        LATDSET = outVal;*/
     }
     
     void dbgUARTVal(unsigned char outVal){
@@ -80,15 +142,17 @@ int global_data;
     }
     
     void dbgOutputLoc(unsigned char outVal){
-        TRISBCLR = 0xFF00;
-        ODCBCLR  = 0xFF00;
+        TRISECLR = 0x00FF;
+        ODCECLR  = 0x00FF;
         
-        LATBCLR = 0xFF00;
-        LATBSET = outVal << 8;
+        LATECLR = 0x00FF;
+        LATESET = outVal;
     }
     
     void dbgPauseAll(){
-        dbgOutputLoc(LOC_DBG_PAUSE_ALL);
+        dbgOutputLoc(DBG_LOC_PAUSE_ALL);
+        //Turn off all interrupts
+        //Turn on a LED
         while(1){;}
     }
 
