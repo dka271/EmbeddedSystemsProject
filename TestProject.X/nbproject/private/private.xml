@@ -3,12 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/app.c</file>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/debug.h</file>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/app_public.h</file>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/app.h</file>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/system_config/milestone1/system_interrupt.c</file>
-            <file>file:/C:/School/ECE_4534/Projects/Milestone1/Milestone1Git/TestProject/firmware/src/debug.c</file>
+            <file>file:/C:/Users/Karthik%20Admin/Documents/Spring2017/Embedded/firmware/firmware/src/debug.c</file>
+            <file>file:/C:/Users/Karthik%20Admin/Documents/Spring2017/Embedded/firmware/firmware/src/app.c</file>
         </group>
     </open-files>
 </project-private>

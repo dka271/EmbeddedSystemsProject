@@ -130,7 +130,6 @@ static bool _DRV_TMR_ClockPrescaleSet(TMR_MODULE_ID timerId, TMR_PRESCALE  presc
 }
 
 
-
 // *****************************************************************************
 // *****************************************************************************
 // Section: Instance 0 static driver data

@@ -127,6 +127,9 @@ void APP_Initialize ( void )
         dbgPauseAll();
     }
     
+   
+    
+    
     //bool thing = DRV_TMR0_Start();
     //DRV_USART0_Open();
     
@@ -182,7 +185,13 @@ void APP_Tasks ( void )
                 unsigned int receivemsg;
                 unsigned int testq = 1;
                 app1Iter = 0;
+                
+                
+                
                 bool thing = DRV_TMR0_Start();
+                bool motor = DRV_OC0_Start();
+                bool mt2 = DRV_OC1_Start();
+               
                 dbgOutputLoc(DBG_LOC_APP1_BEFORE_WHILE);
                 while(1){
                     //Nop();

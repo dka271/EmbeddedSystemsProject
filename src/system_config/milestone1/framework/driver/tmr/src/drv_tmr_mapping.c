@@ -45,6 +45,151 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 // *****************************************************************************
 // *****************************************************************************
+// Section: Driver System Interface Function Definitions
+// *****************************************************************************
+// *****************************************************************************
+
+// *****************************************************************************
+/* Function:
+    SYS_MODULE_OBJ DRV_TMR_Initialize 
+    ( 
+        const SYS_MODULE_INDEX drvIndex,
+        const SYS_MODULE_INIT * const init 
+    )
+
+  Summary:
+    Initializes the Timer driver.
+
+  Description:
+    This function initializes the Timer driver, making it ready for clients to
+    open and use it.
+
+  Remarks:
+    Refer to drv_tmr.h for usage information.
+*/
+
+SYS_MODULE_OBJ DRV_TMR_Initialize 
+( 
+    const SYS_MODULE_INDEX drvIndex,
+    const SYS_MODULE_INIT  * const init 
+)
+{
+	SYS_MODULE_OBJ sysObj;
+	
+	switch (drvIndex)
+    {
+                case DRV_TMR_INDEX_0:
+        {
+            DRV_TMR0_Initialize();
+			sysObj = (SYS_MODULE_OBJ)DRV_TMR_INDEX_0;
+            break;
+        }
+        default:
+        {
+			sysObj = SYS_MODULE_OBJ_INVALID;
+            break;
+        }
+    }
+	return sysObj;
+}
+
+// *****************************************************************************
+/* Function:
+    void DRV_TMR_Deinitialize ( SYS_MODULE_OBJ object )
+
+  Summary:
+    Deinitializes the specified instance of the Timer driver.
+
+  Description:
+    Deinitializes the specified instance of the Timer driver, disabling
+    its operation (and any hardware). All internal data is invalidated.
+
+  Remarks:
+    Refer to drv_tmr.h for usage information.
+*/
+
+void DRV_TMR_Deinitialize ( SYS_MODULE_OBJ object )
+{
+	switch (object)
+    {
+        case DRV_TMR_INDEX_0:
+        {
+            DRV_TMR0_DeInitialize();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
+// *****************************************************************************
+/* Function:
+    SYS_STATUS DRV_TMR_Status ( SYS_MODULE_OBJ object )
+
+  Summary:
+    Provides the current status of the Timer driver.
+
+  Description:
+    This function provides the current status of the Timer driver.
+
+  Remarks:
+    Refer to drv_tmr.h for usage information.
+*/
+
+SYS_STATUS DRV_TMR_Status ( SYS_MODULE_OBJ object )
+{
+	SYS_STATUS returnValue;
+	
+	switch (object)
+    {
+        case DRV_TMR_INDEX_0:
+        {
+            returnValue = DRV_TMR0_Status();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+	return returnValue;
+}
+
+// *****************************************************************************
+/* Function:
+    void DRV_TMR_Tasks ( SYS_MODULE_OBJ object )
+
+  Summary:
+    Maintains the driver's state machine.
+
+  Description:
+    This function is used to maintain the driver's internal state machine and
+    processes the timer events.
+
+  Remarks:
+    Refer to drv_tmr.h for usage information.
+*/
+
+void DRV_TMR_Tasks ( SYS_MODULE_OBJ object )
+{
+	switch (object)
+    {
+        case DRV_TMR_INDEX_0:
+        {
+            DRV_TMR0_Tasks();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
 // Section: TMR Driver Client Functions
 // *****************************************************************************
 // *****************************************************************************
@@ -79,7 +224,7 @@ DRV_HANDLE DRV_TMR_Open
 {
     switch (index)
     {
-                case DRV_TMR_INDEX_0:
+        case DRV_TMR_INDEX_0:
         {
             return (DRV_HANDLE)DRV_TMR_INDEX_0;
             break;

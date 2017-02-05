@@ -85,6 +85,11 @@ static inline void DRV_TMR0_DeInitialize(void)
 {
 	DRV_TMR0_Stop();
 }
+static inline SYS_STATUS DRV_TMR0_Status(void)
+{
+	/* Return the status as ready always */
+    return SYS_STATUS_READY; 
+}
 static inline void DRV_TMR0_Open(void) {}
 DRV_TMR_CLIENT_STATUS DRV_TMR0_ClientStatus ( void );
 static inline DRV_TMR_OPERATION_MODE DRV_TMR0_OperationModeGet(void)

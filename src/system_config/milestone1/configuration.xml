@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration version="1.0.10.0">
-  <DisplayManager>
-    <SystemInitScript/>
-    <SystemStartScript/>
-  </DisplayManager>
   <General>
-    <HarmonyPath path="../../../../../../microchip/harmony/v1_09"/>
+    <HarmonyPath path="../../../../../../microchip/harmony/v1_10"/>
     <Processor name=""/>
     <ForceOptimization flag="true"/>
     <MergeStrategy flag="USER_ALL"/>
@@ -83,6 +79,10 @@
       <File>
         <Name>system.h</Name>
         <Path>Header Files/framework/system</Path>
+      </File>
+      <File>
+        <Name>drv_oc.h</Name>
+        <Path>Header Files/framework/driver/oc</Path>
       </File>
       <File>
         <Name>timers.h</Name>
@@ -243,18 +243,9 @@
     </Files>
     <Templates>
       <Template>
-        <Name>drv_usart_static_byte_model.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
-        <Checksum>29B92242D5EBC5F0D949EAC1AD786CA3</Checksum>
-      </Template>
-      <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/system/clk/src</Path>
         <Checksum>E8C935BED4628875A8C3428DDD07355C</Checksum>
-      </Template>
-      <Template>
-        <Name>main.c</Name>
-        <Path>Source Files/app</Path>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
@@ -262,9 +253,73 @@
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
       </Template>
       <Template>
+        <Name>drv_usart_mapping.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
+        <Checksum>99B1234D6368258201525EBAE6D7FADE</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_tmr_static.h</Name>
+        <Path>Header Files/app/system_config/milestone1/framework/driver/tmr</Path>
+        <Checksum>D22AC818237042BB7D641DC78DE17E8D</Checksum>
+      </Template>
+      <Template>
+        <Name>system_definitions.h</Name>
+        <Path>Header Files/app/system_config/milestone1</Path>
+        <Checksum>65E72DE5A4DB6FF29A20737670FEC1F1</Checksum>
+      </Template>
+      <Template>
+        <Name>system_exceptions.c</Name>
+        <Path>Source Files/app/system_config/milestone1</Path>
+        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_oc_static.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/oc/src</Path>
+        <Checksum>F3566555C2473E6041C242E5A41E95F6</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_usart_static.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
+        <Checksum>AB0CBF1860CBCBA07981370C72AEDA34</Checksum>
+      </Template>
+      <Template>
+        <Name>system_tasks.c</Name>
+        <Path>Source Files/app/system_config/milestone1</Path>
+        <Checksum>8EF63CA106EC9D232898405F0A4B3E36</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_tmr_mapping.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
+        <Checksum>314E75640CA6EE8232D80D0B0DC4F1D8</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_usart_static.h</Name>
+        <Path>Header Files/app/system_config/milestone1/framework/driver/usart</Path>
+        <Checksum>AE37BD63B6EC9F6ADD6B8006CE192FCB</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_oc_static.h</Name>
+        <Path>Header Files/app/system_config/milestone1/framework/driver/oc</Path>
+        <Checksum>E6CF04C7753F572A73A1D43BAB62E6A7</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_usart_static_local.h</Name>
+        <Path>Header Files/app/system_config/milestone1/framework/driver/usart/src</Path>
+        <Checksum>2C3E6EE85E05512BB9836B81EB3DB0E4</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_usart_static_byte_model.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
+        <Checksum>29B92242D5EBC5F0D949EAC1AD786CA3</Checksum>
+      </Template>
+      <Template>
+        <Name>main.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>24D4FBBB2B639D51F761F157241424DF</Checksum>
+        <Checksum>B45333E1BCD4B18F80E909C64F8CB931</Checksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
@@ -276,40 +331,20 @@
         <Path>Source Files/app</Path>
       </Template>
       <Template>
-        <Name>drv_usart_mapping.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
-        <Checksum>99B1234D6368258201525EBAE6D7FADE</Checksum>
+        <Name>drv_oc_mapping.c</Name>
+        <Path>Source Files/app/system_config/milestone1/framework/driver/oc/src</Path>
+        <Checksum>0172B391750A7EFB1836702C7EBC4F22</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>7F6427874FE9D30F12D8BE5FC1737A76</Checksum>
-        <ProjectFileChecksum>CDA22BEEC32589CABB5F8D0052C3F751</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>drv_tmr_static.h</Name>
-        <Path>Header Files/app/system_config/milestone1/framework/driver/tmr</Path>
-        <Checksum>5B1227C9C8A50A58EB2DAB66BF09B4E6</Checksum>
-      </Template>
-      <Template>
-        <Name>system_definitions.h</Name>
-        <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>4B68ED8EDD827DA1E9709A925A10ECBA</Checksum>
-      </Template>
-      <Template>
-        <Name>system_exceptions.c</Name>
-        <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+        <ProjectFileChecksum>4D04E6F065BE1BDE8597E2103BFB5A51</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>B6CBE423647A8929F1046AB6F68B1BD1</Checksum>
-      </Template>
-      <Template>
-        <Name>drv_usart_static.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
-        <Checksum>AB0CBF1860CBCBA07981370C72AEDA34</Checksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
@@ -319,12 +354,8 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>9A607BD99A0653DCBF8BA71A38D0B4CA</Checksum>
-      </Template>
-      <Template>
-        <Name>system_tasks.c</Name>
-        <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>8EF63CA106EC9D232898405F0A4B3E36</Checksum>
+        <Checksum>F22A699A0340A25912560914CAAD875A</Checksum>
+        <ProjectFileChecksum>BF4A98DA59CC7AF4643DC174510C9FE5</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -332,50 +363,39 @@
         <Checksum>FA52743264536E5207D2ADBE57B48D05</Checksum>
       </Template>
       <Template>
-        <Name>drv_tmr_mapping.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
-        <Checksum>0651845480D5D3E21D8BF17EE68DBEAC</Checksum>
-      </Template>
-      <Template>
         <Name>app.h</Name>
         <Path>Header Files/app</Path>
-      </Template>
-      <Template>
-        <Name>drv_usart_static.h</Name>
-        <Path>Header Files/app/system_config/milestone1/framework/driver/usart</Path>
-        <Checksum>AE37BD63B6EC9F6ADD6B8006CE192FCB</Checksum>
       </Template>
       <Template>
         <Name>drv_tmr_static.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
         <Checksum>389571FD783C494EB86E657981CB8BD7</Checksum>
       </Template>
-      <Template>
-        <Name>drv_usart_static_local.h</Name>
-        <Path>Header Files/app/system_config/milestone1/framework/driver/usart/src</Path>
-        <Checksum>2C3E6EE85E05512BB9836B81EB3DB0E4</Checksum>
-      </Template>
     </Templates>
     <CompilerItems>
       <C32-AS>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_10/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_10/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src"/>
-        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\system_config\milestone1"/>
-        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\milestone1"/>
-        <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\School\ECE_4534\Projects\Milestone1\Milestone1Git\TestProject\firmware\src\system_config\milestone1\framework"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\firmware\firmware\src"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\firmware\firmware\src\system_config\milestone1"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\firmware\firmware\src\milestone1"/>
+        <Include value="C:\microchip\harmony\v1_10\framework"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\firmware\firmware\src\system_config\milestone1\framework"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_10/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../microchip/harmony/v1_10/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
         <Define value="__XC"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../../../microchip/harmony/v1_10/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
+  <DisplayManager>
+    <SystemInitScript/>
+    <SystemStartScript/>
+  </DisplayManager>
 </configuration>
