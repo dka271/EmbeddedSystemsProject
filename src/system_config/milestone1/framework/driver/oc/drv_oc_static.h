@@ -55,28 +55,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVOCES, OR ANY CLAIMS BY THIRD PARTIES
 #define DRV_OC_Close(handle)
 
 
-// *****************************************************************************
-// *****************************************************************************
-// Section: Interface Headers for Instance 0 for the static driver
-// *****************************************************************************
-// *****************************************************************************
-void DRV_OC0_Initialize(void);
-void DRV_OC0_Enable(void);
-void DRV_OC0_Disable(void);
-void DRV_OC0_Start(void);
-void DRV_OC0_Stop(void);
-bool DRV_OC0_FaultHasOccurred(void);
-// *****************************************************************************
-// *****************************************************************************
-// Section: Interface Headers for Instance 1 for the static driver
-// *****************************************************************************
-// *****************************************************************************
-void DRV_OC1_Initialize(void);
-void DRV_OC1_Enable(void);
-void DRV_OC1_Disable(void);
-void DRV_OC1_Start(void);
-void DRV_OC1_Stop(void);
-bool DRV_OC1_FaultHasOccurred(void);
 #endif // #ifndef _DRV_OC_STATIC_H
 
 /*******************************************************************************

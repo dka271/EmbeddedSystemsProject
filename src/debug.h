@@ -92,6 +92,8 @@ extern "C" {
 #define DBG_LOC_APP1_AFTER_RECEIVE 10
 #define DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_ENTER 11
 #define DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_EXIT 12
+#define DBG_LOC_TMR1_ISR_ENTER 13
+#define DBG_LOC_TMR1_ISR_EXIT 14
 
 
     // *****************************************************************************

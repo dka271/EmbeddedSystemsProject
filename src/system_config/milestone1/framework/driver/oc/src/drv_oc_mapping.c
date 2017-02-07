@@ -61,16 +61,6 @@ SYS_MODULE_OBJ DRV_OC_Initialize(const SYS_MODULE_INDEX index,const SYS_MODULE_I
 
     switch(index)
     {
-        case DRV_OC_INDEX_0:
-        {
-            DRV_OC0_Initialize();
-            break;
-        }
-        case DRV_OC_INDEX_1:
-        {
-            DRV_OC1_Initialize();
-            break;
-        }
         default:
         {
             returnValue = SYS_MODULE_OBJ_INVALID;
@@ -86,16 +76,6 @@ DRV_HANDLE DRV_OC_Start(const SYS_MODULE_INDEX drvIndex, const DRV_IO_INTENT int
 
     switch(drvIndex)
     {
-        case DRV_OC_INDEX_0:
-        {
-            DRV_OC0_Start();
-            break;
-        }
-        case DRV_OC_INDEX_1:
-        {
-            DRV_OC1_Start();
-            break;
-        }
         default:
         {
             returnValue = SYS_MODULE_OBJ_INVALID;
@@ -110,16 +90,6 @@ void DRV_OC_Stop(DRV_HANDLE handle)
 {
     switch(handle)
     {
-        case DRV_OC_INDEX_0:
-        {
-            DRV_OC0_Stop();
-            break;
-        }
-        case DRV_OC_INDEX_1:
-        {
-            DRV_OC1_Stop();
-            break;
-        }
         default:
         {
             break;
@@ -133,16 +103,6 @@ bool DRV_OC_FaultHasOccurred(DRV_HANDLE handle)
 
     switch(handle)
     {
-        case DRV_OC_INDEX_0:
-        {
-            returnValue = DRV_OC0_FaultHasOccurred();
-            break;
-        }
-        case DRV_OC_INDEX_1:
-        {
-            returnValue = DRV_OC1_FaultHasOccurred();
-            break;
-        }
         default:
         {
             break;

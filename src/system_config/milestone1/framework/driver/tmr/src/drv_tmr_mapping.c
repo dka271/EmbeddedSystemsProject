@@ -45,151 +45,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 // *****************************************************************************
 // *****************************************************************************
-// Section: Driver System Interface Function Definitions
-// *****************************************************************************
-// *****************************************************************************
-
-// *****************************************************************************
-/* Function:
-    SYS_MODULE_OBJ DRV_TMR_Initialize 
-    ( 
-        const SYS_MODULE_INDEX drvIndex,
-        const SYS_MODULE_INIT * const init 
-    )
-
-  Summary:
-    Initializes the Timer driver.
-
-  Description:
-    This function initializes the Timer driver, making it ready for clients to
-    open and use it.
-
-  Remarks:
-    Refer to drv_tmr.h for usage information.
-*/
-
-SYS_MODULE_OBJ DRV_TMR_Initialize 
-( 
-    const SYS_MODULE_INDEX drvIndex,
-    const SYS_MODULE_INIT  * const init 
-)
-{
-	SYS_MODULE_OBJ sysObj;
-	
-	switch (drvIndex)
-    {
-                case DRV_TMR_INDEX_0:
-        {
-            DRV_TMR0_Initialize();
-			sysObj = (SYS_MODULE_OBJ)DRV_TMR_INDEX_0;
-            break;
-        }
-        default:
-        {
-			sysObj = SYS_MODULE_OBJ_INVALID;
-            break;
-        }
-    }
-	return sysObj;
-}
-
-// *****************************************************************************
-/* Function:
-    void DRV_TMR_Deinitialize ( SYS_MODULE_OBJ object )
-
-  Summary:
-    Deinitializes the specified instance of the Timer driver.
-
-  Description:
-    Deinitializes the specified instance of the Timer driver, disabling
-    its operation (and any hardware). All internal data is invalidated.
-
-  Remarks:
-    Refer to drv_tmr.h for usage information.
-*/
-
-void DRV_TMR_Deinitialize ( SYS_MODULE_OBJ object )
-{
-	switch (object)
-    {
-        case DRV_TMR_INDEX_0:
-        {
-            DRV_TMR0_DeInitialize();
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-// *****************************************************************************
-/* Function:
-    SYS_STATUS DRV_TMR_Status ( SYS_MODULE_OBJ object )
-
-  Summary:
-    Provides the current status of the Timer driver.
-
-  Description:
-    This function provides the current status of the Timer driver.
-
-  Remarks:
-    Refer to drv_tmr.h for usage information.
-*/
-
-SYS_STATUS DRV_TMR_Status ( SYS_MODULE_OBJ object )
-{
-	SYS_STATUS returnValue;
-	
-	switch (object)
-    {
-        case DRV_TMR_INDEX_0:
-        {
-            returnValue = DRV_TMR0_Status();
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-	return returnValue;
-}
-
-// *****************************************************************************
-/* Function:
-    void DRV_TMR_Tasks ( SYS_MODULE_OBJ object )
-
-  Summary:
-    Maintains the driver's state machine.
-
-  Description:
-    This function is used to maintain the driver's internal state machine and
-    processes the timer events.
-
-  Remarks:
-    Refer to drv_tmr.h for usage information.
-*/
-
-void DRV_TMR_Tasks ( SYS_MODULE_OBJ object )
-{
-	switch (object)
-    {
-        case DRV_TMR_INDEX_0:
-        {
-            DRV_TMR0_Tasks();
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-}
-
-// *****************************************************************************
-// *****************************************************************************
 // Section: TMR Driver Client Functions
 // *****************************************************************************
 // *****************************************************************************
@@ -224,9 +79,19 @@ DRV_HANDLE DRV_TMR_Open
 {
     switch (index)
     {
-        case DRV_TMR_INDEX_0:
+                case DRV_TMR_INDEX_0:
         {
             return (DRV_HANDLE)DRV_TMR_INDEX_0;
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            return (DRV_HANDLE)DRV_TMR_INDEX_1;
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return (DRV_HANDLE)DRV_TMR_INDEX_2;
             break;
         }
         default:
@@ -262,6 +127,16 @@ void DRV_TMR_Close ( DRV_HANDLE handle )
             DRV_TMR0_Close();
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            DRV_TMR1_Close();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            DRV_TMR2_Close();
+            break;
+        }
         default:
         {
             break;
@@ -292,6 +167,16 @@ DRV_TMR_CLIENT_STATUS DRV_TMR_ClientStatus
         case DRV_TMR_INDEX_0:
         {
             return DRV_TMR0_ClientStatus();
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_ClientStatus();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_ClientStatus();
             break;
         }
         default:
@@ -332,6 +217,16 @@ void DRV_TMR_CounterValueSet ( DRV_HANDLE handle, uint32_t counterPeriod )
             DRV_TMR0_CounterValueSet(counterPeriod);
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            DRV_TMR1_CounterValueSet(counterPeriod);
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            DRV_TMR2_CounterValueSet(counterPeriod);
+            break;
+        }
         default:
         {
             break;
@@ -360,6 +255,16 @@ uint32_t DRV_TMR_CounterValueGet ( DRV_HANDLE handle )
         case DRV_TMR_INDEX_0:
         {
             return DRV_TMR0_CounterValueGet();
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_CounterValueGet();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_CounterValueGet();
             break;
         }
         default:
@@ -392,6 +297,16 @@ void DRV_TMR_CounterClear ( DRV_HANDLE handle )
         case DRV_TMR_INDEX_0:
         {
             DRV_TMR0_CounterClear();
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            DRV_TMR1_CounterClear();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            DRV_TMR2_CounterClear();
             break;
         }
         default:
@@ -612,6 +527,16 @@ bool DRV_TMR_Start ( DRV_HANDLE handle )
             return DRV_TMR0_Start();
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_Start();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_Start();
+            break;
+        }
         default:
         {
             break;
@@ -642,6 +567,16 @@ void DRV_TMR_Stop ( DRV_HANDLE handle )
         case DRV_TMR_INDEX_0:
         {
             DRV_TMR0_Stop();
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            DRV_TMR1_Stop();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            DRV_TMR2_Stop();
             break;
         }
         default:
@@ -704,6 +639,16 @@ DRV_TMR_OPERATION_MODE DRV_TMR_OperationModeGet(DRV_HANDLE handle)
             return DRV_TMR0_OperationModeGet();
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_OperationModeGet();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_OperationModeGet();
+            break;
+        }
         default:
         {
             break;
@@ -752,6 +697,16 @@ bool DRV_TMR_ClockSet
             return DRV_TMR0_ClockSet(clockSource, preScale);
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_ClockSet(clockSource, preScale);
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_ClockSet(clockSource, preScale);
+            break;
+        }
         default:
         {
             break;
@@ -782,6 +737,16 @@ TMR_PRESCALE DRV_TMR_PrescalerGet ( DRV_HANDLE handle )
         case DRV_TMR_INDEX_0:
         {
             return DRV_TMR0_PrescalerGet();
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_PrescalerGet();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_PrescalerGet();
             break;
         }
         default:
@@ -877,6 +842,16 @@ uint32_t DRV_TMR_CounterFrequencyGet ( DRV_HANDLE handle )
             return DRV_TMR0_CounterFrequencyGet();
             break;
         }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_CounterFrequencyGet();
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_CounterFrequencyGet();
+            break;
+        }
         default:
         {
             break;
@@ -915,6 +890,16 @@ DRV_TMR_OPERATION_MODE DRV_TMR_DividerRangeGet
         case DRV_TMR_INDEX_0:
         {
             return DRV_TMR0_DividerRangeGet(pDivRange);
+            break;
+        }
+        case DRV_TMR_INDEX_1:
+        {
+            return DRV_TMR1_DividerRangeGet(pDivRange);
+            break;
+        }
+        case DRV_TMR_INDEX_2:
+        {
+            return DRV_TMR2_DividerRangeGet(pDivRange);
             break;
         }
         default:

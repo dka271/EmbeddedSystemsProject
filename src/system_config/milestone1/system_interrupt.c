@@ -70,20 +70,37 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 
-    
+//uint16_t speed = 0;
 void IntHandlerDrvTmrInstance0(void)
 {
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
     //char msg[5] = "Send";
-    unsigned int msg = 1;
+    unsigned int msg = 0x00000000;
+    msg |= TMR1;
+    msg |= TMR2 << 16;
     dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
     app1SendMsgFromISR(msg);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
+    
+    /*PLIB_OC_PulseWidth16BitSet(OC_ID_2, speed);
+    PLIB_OC_PulseWidth16BitSet(OC_ID_1, speed);
+    speed += 1000;*/
     
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_EXIT);
 }
 
+void IntHandlerDrvTmrInstance1(void)
+{
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_3);
+}
+    
+void IntHandlerDrvTmrInstance2(void)
+{
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_5);
+}
+  
+ 
 /*******************************************************************************
  End of File
 */
