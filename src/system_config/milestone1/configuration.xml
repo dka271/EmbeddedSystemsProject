@@ -358,7 +358,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>C1DBDE584428954EAA9673EF272161AD</Checksum>
+        <Checksum>158793D81BBB8422CBB0D4FF5145AE67</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -372,7 +372,7 @@
       <Template>
         <Name>drv_tmr_static.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
-        <Checksum>4646EE665119A27297873129A97E4BF5</Checksum>
+        <Checksum>F1372850EE04BA4CA6D5FB2B679AB22F</Checksum>
       </Template>
     </Templates>
     <CompilerItems>

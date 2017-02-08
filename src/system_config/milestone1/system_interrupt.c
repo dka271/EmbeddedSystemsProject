@@ -76,8 +76,8 @@ void IntHandlerDrvTmrInstance0(void)
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
     //char msg[5] = "Send";
     unsigned int msg = 0x00000000;
-    msg |= TMR1;
-    msg |= TMR2 << 16;
+    msg |= TMR3;
+    msg |= TMR5 << 16;
     dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
     app1SendMsgFromISR(msg);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
@@ -92,12 +92,16 @@ void IntHandlerDrvTmrInstance0(void)
 
 void IntHandlerDrvTmrInstance1(void)
 {
+    dbgOutputLoc(DBG_LOC_TMR1_ISR_ENTER);
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_3);
+    dbgOutputLoc(DBG_LOC_TMR1_ISR_EXIT);
 }
     
 void IntHandlerDrvTmrInstance2(void)
 {
+    dbgOutputLoc(DBG_LOC_TMR2_ISR_ENTER);
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_5);
+    dbgOutputLoc(DBG_LOC_TMR2_ISR_EXIT);
 }
   
  

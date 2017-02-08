@@ -198,6 +198,14 @@ void APP_Tasks ( void )
                 
                 
                 bool thing = DRV_TMR0_Start();
+                
+                //Set up timer 1 and 2 to receive external input
+                TRISCSET = 0x0004;//TMR1 pin
+                T3CONSET = 0x0082;
+                T3CONCLR = 0x0004;
+                TRISCSET = 0x0010;//TMR2 pin
+                T5CONSET = 0x0082;
+                T5CONCLR = 0x0004;
                 bool thing1 = DRV_TMR1_Start();
                 bool thing2 = DRV_TMR2_Start();
                 //DRV_OC0_Start();
@@ -215,10 +223,12 @@ void APP_Tasks ( void )
                     
                     if(receiveCheck == pdTRUE){
                         //Nop();
-                        if (receivemsg >= 1){
+                        if (1){//receivemsg >= 1){
                             speed1 = (receivemsg & 0x0000ffff) - previousValue1;
+                            //speed1 = TMR3;
                             previousValue1 = receivemsg & 0x0000ffff;
                             speed2 = ((receivemsg & 0xffff0000) >> 16) - previousValue2;
+                            //speed2 = TMR5;
                             previousValue2 = ((receivemsg & 0xffff0000) >> 16);
                             dirCount++;
                             if (dirCount <= 20){
