@@ -15,8 +15,8 @@
  */
 /* ************************************************************************** */
 
-#ifndef APP_PUBLIC_H    /* Guard against multiple inclusion */
-#define APP_PUBLIC_H
+#ifndef NAVIGATION_PUBLIC_H    /* Guard against multiple inclusion */
+#define NAVIGATION_PUBLIC_H
 
 
 /* ************************************************************************** */
@@ -36,14 +36,24 @@
 extern "C" {
 #endif
     
-    void app1SendMsgFromISR(unsigned int msg);
+//Sensor rover defines
+#define NAV_TIMER_COUNTER_3_ID_SENSOR 0
+#define NAV_TIMER_COUNTER_5_ID_SENSOR 1
+#define NAV_COLOR_SENSOR_1_ID_SENSOR 2
+#define NAV_COLOR_SENSOR_2_ID_SENSOR 3
+#define NAV_COLOR_SENSOR_3_ID_SENSOR 4
+#define NAV_MAPPING_ID_SENSOR 5
+
+void navSendMsgFromISR(unsigned char msg[3]);
+void navSendMsg(unsigned char msg[3]);
+
 
     /* Provide C++ Compatibility */
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_PUBLIC_H */
+#endif /* NAVIGATION_PUBLIC_H */
 
 /* *****************************************************************************
  End of File

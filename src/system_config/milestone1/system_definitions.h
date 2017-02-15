@@ -67,6 +67,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "FreeRTOS.h"
 #include "task.h"
 #include "app.h"
+#include "navigation.h"
+#include "mapping.h"
+#include "communication.h"
 
 
 // DOM-IGNORE-BEGIN

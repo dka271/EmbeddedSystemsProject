@@ -62,6 +62,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <xc.h>
 #include <sys/attribs.h>
 #include "app_public.h"
+#include "navigation_public.h"
+#include "mapping_public.h"
+#include "communication_public.h"
 #include "system_definitions.h"
 
 // *****************************************************************************
@@ -70,21 +73,29 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 
-//uint16_t speed = 0;
+    
 void IntHandlerDrvTmrInstance0(void)
 {
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
-    //char msg[5] = "Send";
-    unsigned int msg = 0x00000000;
-    msg |= TMR3;
-    msg |= TMR5 << 16;
-    dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
-    app1SendMsgFromISR(msg);
-    dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
     
-    /*PLIB_OC_PulseWidth16BitSet(OC_ID_2, speed);
-    PLIB_OC_PulseWidth16BitSet(OC_ID_1, speed);
-    speed += 1000;*/
+    //Sample the timer counters and send their values to the navigation queue
+    unsigned short t3 = TMR3;
+    unsigned short t5 = TMR5;
+    unsigned char msg2[3];
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
+    msg2[0] = t3 & 0x00ff;
+    msg2[1] = (t3 & 0xff00) >> 8;
+    msg2[2] = (NAV_TIMER_COUNTER_3_ID_SENSOR & 0x00000007) << 5;
+    //navSendMsgFromISR(msg2);
+    msg2[0] = t5 & 0x00ff;
+    msg2[1] = (t5 & 0xff00) >> 8;
+    msg2[2] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << 5;
+    //navSendMsgFromISR(msg2);
+    
+    unsigned char msg3[14];
+    msg3[13] = (MAP_MAPPING_TIMER_ID & 0x00000007) << 5;
+    mapSendMsgFromISR(msg3);
+    dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
     
     PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_EXIT);

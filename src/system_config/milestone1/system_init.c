@@ -190,6 +190,9 @@ void SYS_Initialize ( void* data )
 
     /* Initialize the Application */
     APP_Initialize();
+    NAVIGATION_Initialize();
+    MAPPING_Initialize();
+    COMMUNICATION_Initialize();
 }
 
 

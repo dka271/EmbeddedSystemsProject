@@ -262,6 +262,7 @@ build/milestone1/production/_ext/1360937237/app.o:  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/ports/processor/../templates/ports_ChangeNoticeEdgeControl_Unsupported.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/ports/processor/../templates/ports_ChangeNoticeEdgeStatus_Unsupported.h  \
  ../src/app.h  \
+../src/navigation.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/sys_msg.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/config/sys_msg_config.h  \
  ../src/debug.h  \
@@ -833,4 +834,9 @@ build/milestone1/production/_ext/1360937237/app.o:  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32xxxx.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32mx795f512l.h  \
  ../src/motor.h  \
+../src/mapping_public.h  \
+../src/mapping.h  \
+ ../src/navigation_public.h  \
+../src/communication_public.h  \
+ ../src/communication.h  \
 ../src/app_public.h 

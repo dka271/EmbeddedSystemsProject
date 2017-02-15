@@ -55,6 +55,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 #include "app.h"
+#include "navigation.h"
+#include "mapping.h"
+#include "communication.h"
 
 
 // *****************************************************************************
@@ -67,6 +70,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
  
 static void _SYS_Tasks ( void );
 static void _APP_Tasks(void);
+static void _NAVIGATION_Tasks(void);
+static void _MAPPING_Tasks(void);
+static void _COMMUNICATION_Tasks(void);
 
 
 // *****************************************************************************
@@ -93,6 +99,21 @@ void SYS_Tasks ( void )
     /* Create OS Thread for APP Tasks. */
     xTaskCreate((TaskFunction_t) _APP_Tasks,
                 "APP Tasks",
+                1024, NULL, 1, NULL);
+
+    /* Create OS Thread for NAVIGATION Tasks. */
+    xTaskCreate((TaskFunction_t) _NAVIGATION_Tasks,
+                "NAVIGATION Tasks",
+                1024, NULL, 1, NULL);
+
+    /* Create OS Thread for MAPPING Tasks. */
+    xTaskCreate((TaskFunction_t) _MAPPING_Tasks,
+                "MAPPING Tasks",
+                1024, NULL, 1, NULL);
+
+    /* Create OS Thread for COMMUNICATION Tasks. */
+    xTaskCreate((TaskFunction_t) _COMMUNICATION_Tasks,
+                "COMMUNICATION Tasks",
                 1024, NULL, 1, NULL);
 
     /**************
@@ -141,6 +162,57 @@ static void _APP_Tasks(void)
     while(1)
     {
         APP_Tasks();
+    }
+}
+
+
+/*******************************************************************************
+  Function:
+    void _NAVIGATION_Tasks ( void )
+
+  Summary:
+    Maintains state machine of NAVIGATION.
+*/
+
+static void _NAVIGATION_Tasks(void)
+{
+    while(1)
+    {
+        NAVIGATION_Tasks();
+    }
+}
+
+
+/*******************************************************************************
+  Function:
+    void _MAPPING_Tasks ( void )
+
+  Summary:
+    Maintains state machine of MAPPING.
+*/
+
+static void _MAPPING_Tasks(void)
+{
+    while(1)
+    {
+        MAPPING_Tasks();
+    }
+}
+
+
+/*******************************************************************************
+  Function:
+    void _COMMUNICATION_Tasks ( void )
+
+  Summary:
+    Maintains state machine of COMMUNICATION.
+*/
+
+static void _COMMUNICATION_Tasks(void)
+{
+    while(1)
+    {
+        COMMUNICATION_Tasks();
     }
 }
 

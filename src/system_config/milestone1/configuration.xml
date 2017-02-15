@@ -257,9 +257,21 @@
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
       </Template>
       <Template>
+        <Name>navigation.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+      <Template>
+        <Name>navigation.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
         <Name>drv_usart_mapping.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/usart/src</Path>
         <Checksum>99B1234D6368258201525EBAE6D7FADE</Checksum>
+      </Template>
+      <Template>
+        <Name>communication.c</Name>
+        <Path>Source Files/app</Path>
       </Template>
       <Template>
         <Name>drv_tmr_static.h</Name>
@@ -269,7 +281,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>73CB9CDF4160219C4ABA84F1E3767DD5</Checksum>
+        <Checksum>46C8D15C95AB8516D0BA058978906547</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -289,7 +301,7 @@
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>8EF63CA106EC9D232898405F0A4B3E36</Checksum>
+        <Checksum>005906E2EF4589B378AC3963D3DC0609</Checksum>
       </Template>
       <Template>
         <Name>drv_tmr_mapping.c</Name>
@@ -321,9 +333,13 @@
         <Path>Source Files/app</Path>
       </Template>
       <Template>
+        <Name>mapping.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>CEBD34B972D434FB0B1AFB93B1BE5236</Checksum>
+        <Checksum>AFE6B413565EFEE97ED62DB34B4976EB</Checksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
@@ -342,8 +358,12 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>757299C0923EA9CF1AC2D2DB8714E467</Checksum>
+        <Checksum>F3FC9F7E10BCFEC43D4A06F1ED3725DD</Checksum>
         <ProjectFileChecksum>F69D0E3F60B46C173341CC17DAC1AA61</ProjectFileChecksum>
+      </Template>
+      <Template>
+        <Name>mapping.h</Name>
+        <Path>Header Files/app</Path>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
@@ -358,7 +378,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>158793D81BBB8422CBB0D4FF5145AE67</Checksum>
+        <Checksum>6603D51F604A9E75EC9A45C4888E893C</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -367,6 +387,10 @@
       </Template>
       <Template>
         <Name>app.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+      <Template>
+        <Name>communication.h</Name>
         <Path>Header Files/app</Path>
       </Template>
       <Template>

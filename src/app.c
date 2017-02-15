@@ -184,16 +184,16 @@ void APP_Tasks ( void )
                 
                 unsigned int receivemsg;
                 unsigned int testq = 1;
-                unsigned int previousValue1 = 0;
-                unsigned int speed1;
-                unsigned int previousValue2 = 0;
-                unsigned int speed2;
-                unsigned int dirCount = 0;
+                //unsigned int previousValue1 = 0;
+                //unsigned int speed1;
+                //unsigned int previousValue2 = 0;
+                //unsigned int speed2;
+                //unsigned int dirCount = 0;
                 app1Iter = 0;
-                Motor1SetPWM(1);
-                Motor2SetPWM(1);
-                Motor1SetDirection(MOTOR_1_FORWARDS);
-                Motor2SetDirection(MOTOR_2_FORWARDS);
+                //Motor1SetPWM(1);
+                //Motor2SetPWM(1);
+                //Motor1SetDirection(MOTOR_1_FORWARDS);
+                //Motor2SetDirection(MOTOR_2_FORWARDS);
                 
                 
                 
@@ -224,7 +224,7 @@ void APP_Tasks ( void )
                     if(receiveCheck == pdTRUE){
                         //Nop();
                         if (1){//receivemsg >= 1){
-                            speed1 = (receivemsg & 0x0000ffff) - previousValue1;
+                            /*speed1 = (receivemsg & 0x0000ffff) - previousValue1;
                             //speed1 = TMR3;
                             previousValue1 = receivemsg & 0x0000ffff;
                             speed2 = ((receivemsg & 0xffff0000) >> 16) - previousValue2;
@@ -280,48 +280,48 @@ void APP_Tasks ( void )
                                 Motor2SetPWM(1);
                             }else if (dirCount == 200){
                                 dirCount = 0;
-                            }
+                            }*/
                             
                             
                             //speed = 0x00005555;
                             //Nop();
-                            if (app1Iter == 0){
+                            /*if (app1Iter == 0){
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x54);
                                 //dbgOutputLoc(0x54);
                                 app1Iter++;
                             } else if (app1Iter == 1){
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x65);
                                 //dbgOutputLoc(0x65);
                                 app1Iter++;
                             } else if (app1Iter == 2){
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x61);
                                 //dbgOutputLoc(0x61);
                                 app1Iter++;
                             } else if (app1Iter == 3){
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x6D);
                                 //dbgOutputLoc(0x6D);
                                 app1Iter++;
                             } else if (app1Iter == 4){
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x20);
                                 //dbgOutputLoc(0x20);
                                 app1Iter++;
                             } else {
                                 dbgOutputVal((char) speed1);
-                                dbgOutputLoc((char) speed2);
+                                dbgOutputVal((char) speed2);
                                 dbgUARTVal(0x37);
                                 //dbgOutputLoc(0x37);
                                 app1Iter = 0;
-                            }
+                            }*/
                         }
                     }else{
                         Nop();

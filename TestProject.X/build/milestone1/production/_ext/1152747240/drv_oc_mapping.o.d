@@ -831,4 +831,10 @@ build/milestone1/production/_ext/1152747240/drv_oc_mapping.o:  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_processor.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32xxxx.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32mx795f512l.h  \
- ../src/motor.h 
+ ../src/motor.h  \
+../src/navigation.h  \
+../src/mapping_public.h  \
+ ../src/mapping.h  \
+../src/navigation_public.h  \
+ ../src/communication_public.h  \
+../src/communication.h 

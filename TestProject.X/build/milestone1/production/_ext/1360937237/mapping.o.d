@@ -1,14 +1,11 @@
-build/milestone1/production/_ext/1555642536/system_interrupt.o:  \
- ../src/system_config/milestone1/system_interrupt.c  \
-../src/app_public.h  \
- ../src/navigation_public.h  \
-../src/mapping_public.h  \
- ../src/communication_public.h  \
+build/milestone1/production/_ext/1360937237/mapping.o:  \
+../src/mapping.c  \
+ ../src/mapping.h  \
+../src/system_config/milestone1/system_config.h  \
  ../src/system_config/milestone1/system_definitions.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/common/sys_common.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/common/sys_module.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/driver/oc/drv_oc.h  \
- ../src/system_config/milestone1/system_config.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/driver/driver_common.h  \
  ../src/system_config/milestone1/framework/driver/oc/drv_oc_static.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/clk/sys_clk.h  \
@@ -265,7 +262,6 @@ build/milestone1/production/_ext/1555642536/system_interrupt.o:  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/ports/processor/../templates/ports_ChangeNoticeEdgeControl_Unsupported.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/ports/processor/../templates/ports_ChangeNoticeEdgeStatus_Unsupported.h  \
  ../src/app.h  \
-../src/system_config/milestone1/system_definitions.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/sys_msg.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/config/sys_msg_config.h  \
  ../src/debug.h  \
@@ -840,6 +836,6 @@ build/milestone1/production/_ext/1555642536/system_interrupt.o:  \
 ../src/navigation.h  \
 ../src/mapping_public.h  \
  ../src/mapping.h  \
+../src/communication.h  \
 ../src/navigation_public.h  \
- ../src/communication_public.h  \
-../src/communication.h 
+ ../src/communication_public.h 

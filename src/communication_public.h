@@ -15,8 +15,8 @@
  */
 /* ************************************************************************** */
 
-#ifndef APP_PUBLIC_H    /* Guard against multiple inclusion */
-#define APP_PUBLIC_H
+#ifndef COMMUNICATION_PUBLIC_H    /* Guard against multiple inclusion */
+#define COMMUNICATION_PUBLIC_H
 
 
 /* ************************************************************************** */
@@ -36,14 +36,19 @@
 extern "C" {
 #endif
     
-    void app1SendMsgFromISR(unsigned int msg);
+    void commSendMsgFromISR(unsigned char msg[6]);
+    void commSendMsg(unsigned char msg[6]);
+    
+#define COMM_UART_ID 0
+#define COMM_MAPPING_ID 1
+
 
     /* Provide C++ Compatibility */
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_PUBLIC_H */
+#endif /* COMMUNICATION_PUBLIC_H */
 
 /* *****************************************************************************
  End of File
