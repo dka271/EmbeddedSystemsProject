@@ -406,11 +406,11 @@
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src"/>
-        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\system_config\milestone1"/>
-        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\milestone1"/>
-        <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\system_config\milestone1\framework"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/system_config/milestone1"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/milestone1"/>
+        <Include value="C:/microchip/harmony/v1_09/framework"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/system_config/milestone1/framework"/>
         <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
         <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>

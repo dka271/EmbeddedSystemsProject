@@ -81,19 +81,22 @@ void IntHandlerDrvTmrInstance0(void)
     //Sample the timer counters and send their values to the navigation queue
     unsigned short t3 = TMR3;
     unsigned short t5 = TMR5;
-    unsigned char msg2[3];
+    unsigned char msg2[NAV_QUEUE_BUFFER_SIZE];
     dbgOutputLoc(DBG_LOC_TMR0_ISR_BEFORE_SEND);
     msg2[0] = t3 & 0x00ff;
     msg2[1] = (t3 & 0xff00) >> 8;
-    msg2[2] = (NAV_TIMER_COUNTER_3_ID_SENSOR & 0x00000007) << 5;
+    msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_3_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
+    msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
     //navSendMsgFromISR(msg2);
     msg2[0] = t5 & 0x00ff;
     msg2[1] = (t5 & 0xff00) >> 8;
-    msg2[2] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << 5;
+    msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
+    msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
     //navSendMsgFromISR(msg2);
     
-    unsigned char msg3[14];
-    msg3[13] = (MAP_MAPPING_TIMER_ID & 0x00000007) << 5;
+    unsigned char msg3[MAP_QUEUE_BUFFER_SIZE];
+    msg3[MAP_SOURCE_ID_IDX] = (MAP_MAPPING_TIMER_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
+    msg3[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg3);
     mapSendMsgFromISR(msg3);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
     

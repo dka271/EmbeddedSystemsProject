@@ -43,9 +43,17 @@ extern "C" {
 #define NAV_COLOR_SENSOR_2_ID_SENSOR 3
 #define NAV_COLOR_SENSOR_3_ID_SENSOR 4
 #define NAV_MAPPING_ID_SENSOR 5
+    
+#define NAV_QUEUE_BUFFER_SIZE 4
+#define NAV_CHECKSUM_IDX 3
+#define NAV_SOURCE_ID_IDX 2
+#define NAV_SOURCE_ID_MASK 0xe0
+#define NAV_SOURCE_ID_OFFSET 5
+    
+unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 
-void navSendMsgFromISR(unsigned char msg[3]);
-void navSendMsg(unsigned char msg[3]);
+void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
+void navSendMsg(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 
 
     /* Provide C++ Compatibility */

@@ -121,7 +121,7 @@ void COMMUNICATION_Initialize ( void )
     communicationData.state = COMMUNICATION_STATE_INIT;
     
     //Initialize the mapping queue
-    commQueue = xQueueCreate(10, sizeof(unsigned char[6]));
+    commQueue = xQueueCreate(10, sizeof(unsigned char[COMM_QUEUE_BUFFER_SIZE]));
     if(commQueue == 0){
         dbgPauseAll();
     }
@@ -132,14 +132,23 @@ void COMMUNICATION_Initialize ( void )
      */
 }
 
-void commSendMsgFromISR(unsigned char msg[6]){
+void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBackFromISR(commQueue, msg, NULL);
 }
 
-void commSendMsg(unsigned char msg[6]){
+void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBack(commQueue, msg, portMAX_DELAY);
+}
+    
+unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
+    unsigned char sum = 0;
+    unsigned int i;
+    for (i = 0; i < COMM_QUEUE_BUFFER_SIZE - 1; i++){
+        sum += msg[i];
+    }
+    return sum;
 }
 
 
@@ -174,7 +183,7 @@ void COMMUNICATION_Tasks ( void )
 
         case COMMUNICATION_STATE_SERVICE_TASKS:
         {
-            unsigned char receivemsg[6];
+            unsigned char receivemsg[COMM_QUEUE_BUFFER_SIZE];
             
             dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE);
             while(1){
@@ -187,9 +196,9 @@ void COMMUNICATION_Tasks ( void )
                 if(receiveCheck == pdTRUE){
                     //Convert the message into integer format
                     unsigned int receivemsgint0 = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
-                    unsigned int receivemsgint1 = receivemsg[4] | (receivemsg[5] << 8);
+                    unsigned int receivemsgint1 = receivemsg[4] | (receivemsg[5] << 8) | (receivemsg[6] << 16) | (receivemsg[7] << 24);
                     //Get the message ID
-                    int msgId = (receivemsg[5] & 0x80) >> 7;
+                    int msgId = (receivemsg[COMM_SOURCE_ID_IDX] & COMM_SOURCE_ID_MASK) >> COMM_SOURCE_ID_OFFSET;
                     //Handle a specific message
                     if (msgId == COMM_MAPPING_ID){
                         //Handle a message from the mapping thread
@@ -199,6 +208,8 @@ void COMMUNICATION_Tasks ( void )
                         dbgOutputVal(receivemsg[3]);
                         dbgOutputVal(receivemsg[4]);
                         dbgOutputVal(receivemsg[5]);
+                        dbgOutputVal(receivemsg[6]);
+                        dbgOutputVal(receivemsg[7]);
                     }else if (msgId == COMM_UART_ID){
                         //Handle input from the WiFly
                     }

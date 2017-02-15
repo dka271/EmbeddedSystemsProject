@@ -36,11 +36,19 @@
 extern "C" {
 #endif
     
-    void commSendMsgFromISR(unsigned char msg[6]);
-    void commSendMsg(unsigned char msg[6]);
-    
 #define COMM_UART_ID 0
 #define COMM_MAPPING_ID 1
+    
+#define COMM_QUEUE_BUFFER_SIZE 8
+#define COMM_CHECKSUM_IDX 7
+#define COMM_SOURCE_ID_IDX 6
+#define COMM_SOURCE_ID_MASK 0x80
+#define COMM_SOURCE_ID_OFFSET 7
+    
+unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
+    
+void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
+void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
 
 
     /* Provide C++ Compatibility */

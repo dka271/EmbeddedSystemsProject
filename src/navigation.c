@@ -121,7 +121,7 @@ void NAVIGATION_Initialize ( void )
     navigationData.state = NAVIGATION_STATE_INIT;
     
     //Initialize the navigation queue
-    navQueue = xQueueCreate(10, sizeof(unsigned char[3]));
+    navQueue = xQueueCreate(10, sizeof(unsigned char[NAV_QUEUE_BUFFER_SIZE]));
     if(navQueue == 0){
         dbgPauseAll();
     }
@@ -132,14 +132,23 @@ void NAVIGATION_Initialize ( void )
      */
 }
 
-void navSendMsgFromISR(unsigned char msg[3]){
+void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBackFromISR(navQueue, msg, NULL);
 }
 
-void navSendMsg(unsigned char msg[3]){
+void navSendMsg(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBack(navQueue, msg, portMAX_DELAY);
+}
+    
+unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
+    unsigned char sum = 0;
+    unsigned int i;
+    for (i = 0; i < NAV_QUEUE_BUFFER_SIZE - 1; i++){
+        sum += msg[i];
+    }
+    return sum;
 }
 
 
@@ -174,7 +183,7 @@ void NAVIGATION_Tasks ( void )
 
         case NAVIGATION_STATE_SERVICE_TASKS:
         {
-            unsigned char receivemsg[3];
+            unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
             unsigned int previousValue1 = 0;
             unsigned int speed1;
             unsigned int previousValue2 = 0;
@@ -195,9 +204,9 @@ void NAVIGATION_Tasks ( void )
                 //Handle the message
                 if(receiveCheck == pdTRUE){
                     //Convert the message into integer format
-                    unsigned int receivemsgint = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16);
+                    unsigned int receivemsgint = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
                     //Get the message ID
-                    int msgId = (receivemsg[2] & 0xe0) >> 5;
+                    int msgId = (receivemsg[NAV_SOURCE_ID_IDX] & NAV_SOURCE_ID_MASK) >> NAV_SOURCE_ID_OFFSET;
                     //Handle a specific message
                     if (msgId == NAV_TIMER_COUNTER_3_ID_SENSOR){
                         //Motor 2 Encoder Message Handler
@@ -225,7 +234,7 @@ void NAVIGATION_Tasks ( void )
                         dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
                         dbgOutputVal(receivemsgint & 0x000000ff);
                         
-                        unsigned char msg[14];
+                        unsigned char msg[MAP_QUEUE_BUFFER_SIZE];
                         msg[0] = 0;
                         msg[1] = 0x11;
                         msg[2] = 0x22;
@@ -239,7 +248,8 @@ void NAVIGATION_Tasks ( void )
                         msg[10] = 0xaa;
                         msg[11] = 0xbb;
                         msg[12] = 0xcc;
-                        msg[13] = (MAP_NAVIGATION_ID & 0x00000007) << 5;
+                        msg[MAP_SOURCE_ID_IDX] = (MAP_NAVIGATION_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
+                        msg[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg);
                         mapSendMsg(msg);
                     }
                 }

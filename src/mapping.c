@@ -121,7 +121,7 @@ void MAPPING_Initialize ( void )
     mappingData.state = MAPPING_STATE_INIT;
     
     //Initialize the mapping queue
-    mapQueue = xQueueCreate(10, sizeof(unsigned char[14]));
+    mapQueue = xQueueCreate(10, sizeof(unsigned char[MAP_QUEUE_BUFFER_SIZE]));
     if(mapQueue == 0){
         dbgPauseAll();
     }
@@ -132,14 +132,23 @@ void MAPPING_Initialize ( void )
      */
 }
 
-void mapSendMsgFromISR(unsigned char msg[14]){
+void mapSendMsgFromISR(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBackFromISR(mapQueue, msg, NULL);
 }
 
-void mapSendMsg(unsigned char msg[14]){
+void mapSendMsg(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
     xQueueSendToBack(mapQueue, msg, portMAX_DELAY);
+}
+    
+unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
+    unsigned char sum = 0;
+    unsigned int i;
+    for (i = 0; i < MAP_QUEUE_BUFFER_SIZE - 1; i++){
+        sum += msg[i];
+    }
+    return sum;
 }
 
 
@@ -174,7 +183,7 @@ void MAPPING_Tasks ( void )
 
         case MAPPING_STATE_SERVICE_TASKS:
         {
-            unsigned char receivemsg[14];
+            unsigned char receivemsg[MAP_QUEUE_BUFFER_SIZE];
             
             dbgOutputLoc(DBG_LOC_MAP_BEFORE_WHILE);
             while(1){
@@ -191,7 +200,7 @@ void MAPPING_Tasks ( void )
                     unsigned int receivemsgint2 = receivemsg[8] | (receivemsg[9] << 8) | (receivemsg[10] << 16) | (receivemsg[11] << 24);
                     unsigned int receivemsgint3 = receivemsg[12] | (receivemsg[13] << 8) | (receivemsg[14] << 16);
                     //Get the message ID
-                    int msgId = (receivemsg[13] & 0xe0) >> 5;
+                    int msgId = (receivemsg[MAP_SOURCE_ID_IDX] & MAP_SOURCE_ID_MASK) >> MAP_SOURCE_ID_OFFSET;
                     //Handle a specific message
                     if (msgId == MAP_NAVIGATION_ID){
                         //Handle a message from the navigation thread
@@ -216,7 +225,8 @@ void MAPPING_Tasks ( void )
                         msg2[2] = 0x3d;
                         msg2[3] = 0x4c;
                         msg2[4] = 0x5b;
-                        msg2[5] = (COMM_MAPPING_ID & 0x00000001) << 7;
+                        msg2[COMM_SOURCE_ID_IDX] = (COMM_MAPPING_ID & 0x00000001) << COMM_SOURCE_ID_OFFSET;
+                        msg2[COMM_CHECKSUM_IDX] = commCalculateChecksum(msg2);
                         commSendMsg(msg2);
                     }else if (msgId == MAP_PIXY_CAM_ID){
                         //Handle input from the pixy cam
@@ -230,10 +240,11 @@ void MAPPING_Tasks ( void )
                         //Start sampling
                         dbgOutputVal(receivemsg[13]);
                         
-                        unsigned char msg1[3];
+                        unsigned char msg1[NAV_QUEUE_BUFFER_SIZE];
                         msg1[0] = 0x5a;
                         msg1[1] = 0x6c;
-                        msg1[2] = (NAV_MAPPING_ID_SENSOR & 0x00000007) << 5;
+                        msg1[NAV_SOURCE_ID_IDX] = (NAV_MAPPING_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
+                        msg1[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg1);
                         navSendMsg(msg1);
                     }
                 }
