@@ -87,12 +87,12 @@ void IntHandlerDrvTmrInstance0(void)
     msg2[1] = (t3 & 0xff00) >> 8;
     msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_3_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
-    //navSendMsgFromISR(msg2);
+    navSendMsgFromISR(msg2);
     msg2[0] = t5 & 0x00ff;
     msg2[1] = (t5 & 0xff00) >> 8;
     msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
-    //navSendMsgFromISR(msg2);
+    navSendMsgFromISR(msg2);
     
     unsigned char msg3[MAP_QUEUE_BUFFER_SIZE];
     msg3[MAP_SOURCE_ID_IDX] = (MAP_MAPPING_TIMER_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
@@ -118,6 +118,16 @@ void IntHandlerDrvTmrInstance2(void)
     dbgOutputLoc(DBG_LOC_TMR2_ISR_EXIT);
 }
   
+void IntHandlerDrvTmrInstance3(void)
+{
+    unsigned char msg2[NAV_QUEUE_BUFFER_SIZE];
+    msg2[0] = 0;
+    msg2[1] = 0;
+    msg2[NAV_SOURCE_ID_IDX] = (7 & 0x00000007) << NAV_SOURCE_ID_OFFSET;
+    msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
+    navSendMsgFromISR(msg2);
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_4);
+}
  
 /*******************************************************************************
  End of File

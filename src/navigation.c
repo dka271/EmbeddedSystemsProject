@@ -189,7 +189,7 @@ void NAVIGATION_Tasks ( void )
             unsigned int speed1;
             unsigned int previousValue2 = 0;
             unsigned int speed2;
-            unsigned int dirCount = 0;
+            unsigned int pwmCount = 0;
             Motor1SetPWM(1);
             Motor2SetPWM(1);
             Motor1SetDirection(MOTOR_1_FORWARDS);
@@ -223,6 +223,9 @@ void NAVIGATION_Tasks ( void )
                         //dbgOutputVal(receivemsgint & 0x000000ff);
                         speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
                         previousValue1 = receivemsgint & 0x0000ffff;
+                        if (UNIT_TESTING){
+                            encoderSpeedTest(speed1);
+                        }
                     }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
                         //Handle stuff from color sensor 1
                     }else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR){
@@ -255,6 +258,17 @@ void NAVIGATION_Tasks ( void )
                         msg[MAP_SOURCE_ID_IDX] = (MAP_NAVIGATION_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
                         msg[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg);
                         mapSendMsg(msg);
+                    }else if (msgId == 7){
+                        pwmCount++;
+                        int ticksTarget = TEST_SPEED_TICKS;
+                        int val = (int) ticksTarget/20;
+                        int mod = (int) ticksTarget/12;
+                        int pwm = (pwmCount % 5) == val;
+                        Motor1SetPWM(pwmCount > 80);
+                        Motor2SetPWM(pwmCount > 80);
+                        if (pwmCount >= 100){
+                            pwmCount = 0;
+                        }
                     }
                 }
             }

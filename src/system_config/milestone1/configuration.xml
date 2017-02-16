@@ -276,12 +276,12 @@
       <Template>
         <Name>drv_tmr_static.h</Name>
         <Path>Header Files/app/system_config/milestone1/framework/driver/tmr</Path>
-        <Checksum>134C67B5A7E7C805A90542EA12C99256</Checksum>
+        <Checksum>387B098A9DB62DCDFFE7C3E4CA6232D4</Checksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>46C8D15C95AB8516D0BA058978906547</Checksum>
+        <Checksum>98C087ABED1CA9E8C1A44DC16D0FE4AA</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -306,7 +306,7 @@
       <Template>
         <Name>drv_tmr_mapping.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
-        <Checksum>9E567837A2D47FE3F8120D943C90DAB9</Checksum>
+        <Checksum>D09CEC267AAF52642056739423975460</Checksum>
       </Template>
       <Template>
         <Name>drv_usart_static.h</Name>
@@ -339,7 +339,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>AFE6B413565EFEE97ED62DB34B4976EB</Checksum>
+        <Checksum>1F5C129BD672E3ABF95FFABCD91F49F7</Checksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
@@ -358,7 +358,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>F3FC9F7E10BCFEC43D4A06F1ED3725DD</Checksum>
+        <Checksum>F5CD6438BAAFBF93C3A5855EA5F91B1E</Checksum>
         <ProjectFileChecksum>C7F2366D0009A17438B131B6626740D0</ProjectFileChecksum>
       </Template>
       <Template>
@@ -368,7 +368,7 @@
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>5C392F11602CDAA66978B27AA71E4225</Checksum>
+        <Checksum>64871148A2FF9E7E6E735419E0B3A744</Checksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
@@ -378,7 +378,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>6603D51F604A9E75EC9A45C4888E893C</Checksum>
+        <Checksum>61E50F888AE792ED149F79DCD57C4BF7</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -396,7 +396,7 @@
       <Template>
         <Name>drv_tmr_static.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/tmr/src</Path>
-        <Checksum>F1372850EE04BA4CA6D5FB2B679AB22F</Checksum>
+        <Checksum>DA98AC517C4253466410091E4694C667</Checksum>
       </Template>
     </Templates>
     <CompilerItems>
@@ -406,11 +406,11 @@
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/milestone1"/>
-        <Include value="C:/microchip/harmony/v1_09/framework"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1/framework"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\firmware\src"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\firmware\src\system_config\milestone1"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\firmware\src\milestone1"/>
+        <Include value="C:\microchip\harmony\v1_09\framework"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\firmware\src\system_config\milestone1\framework"/>
         <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
         <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
