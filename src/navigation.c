@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "navigation.h"
 #include "navigation_public.h"
+#include "ms2test.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -228,6 +229,9 @@ void NAVIGATION_Tasks ( void )
                         //Handle stuff from color sensor 2
                     }else if (msgId == NAV_COLOR_SENSOR_3_ID_SENSOR){
                         //Handle stuff from color sensor 3
+                        if (UNIT_TESTING){
+                            navQueueReceiveTest(receivemsg);
+                        }
                     }else if (msgId == NAV_MAPPING_ID_SENSOR){
                         //Handle stuff from the mapping queue
                         dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);

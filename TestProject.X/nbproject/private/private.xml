@@ -2,6 +2,11 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1/system_interrupt.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/TestProject.X/nbproject/Makefile-milestone1.mk</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/app.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/debug.c</file>
+        </group>
     </open-files>
 </project-private>

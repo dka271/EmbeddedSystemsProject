@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "mapping.h"
 #include "mapping_public.h"
+#include "ms2test.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -192,6 +193,10 @@ void MAPPING_Tasks ( void )
                 BaseType_t receiveCheck = xQueueReceive(mapQueue, receivemsg, portMAX_DELAY);
                 dbgOutputLoc(DBG_LOC_MAP_AFTER_RECEIVE);
                 
+//                mapChecksumTest();
+//                commChecksumTest();
+
+                
                 //Handle the message
                 if(receiveCheck == pdTRUE){
                     //Convert the message into integer format
@@ -232,6 +237,9 @@ void MAPPING_Tasks ( void )
                         //Handle input from the pixy cam
                     }else if (msgId == MAP_ULTRASONIC_ID){
                         //Handle input from the ultrasonic sensor
+                        if (UNIT_TESTING){
+                            mapQueueReceiveTest(receivemsg);
+                        }
                     }else if (msgId == MAP_IR_1_ID){
                         //Handle input from the first IR sensor
                     }else if (msgId == MAP_IR_2_ID){

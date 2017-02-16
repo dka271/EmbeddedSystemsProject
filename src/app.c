@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "app.h"
 #include "app_public.h"
+#define TESTING true
 
 // *****************************************************************************
 // *****************************************************************************
@@ -213,6 +214,9 @@ void APP_Tasks ( void )
                 //DRV_OC2_Start();
                
                 dbgOutputLoc(DBG_LOC_APP1_BEFORE_WHILE);
+                
+                automatedTesting();
+                
                 while(1){
                     //Nop();
                     dbgOutputLoc(DBG_LOC_APP1_BEFORE_RECEIVE);
@@ -342,6 +346,7 @@ void APP_Tasks ( void )
             break;
         }
     }
+
 }
 
  

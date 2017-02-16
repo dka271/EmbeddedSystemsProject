@@ -101,6 +101,13 @@ int global_data;
         //}
     }
     
+    void dbgUARTString(unsigned char* outVal, unsigned int numChars){
+        int i;
+        for (i = 0; i < numChars; i++){
+            dbgUARTVal(outVal[i]);
+        }
+    }
+    
     void dbgOutputLoc(unsigned char outVal){
         TRISECLR = 0x00FF;
         ODCECLR  = 0x00FF;

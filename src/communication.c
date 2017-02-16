@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "communication.h"
 #include "communication_public.h"
+#include "ms2test.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -212,6 +213,9 @@ void COMMUNICATION_Tasks ( void )
                         dbgOutputVal(receivemsg[7]);
                     }else if (msgId == COMM_UART_ID){
                         //Handle input from the WiFly
+                        if (UNIT_TESTING){
+                            commQueueReceiveTest(receivemsg);
+                        }
                     }
                 }
             }

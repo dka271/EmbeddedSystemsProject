@@ -160,6 +160,9 @@ extern "C" {
     //It is only meant to be called once every 100 milliseconds 
     void dbgUARTVal(unsigned char outVal);
     
+    //This function uses a string 
+    void dbgUARTString(unsigned char* outVal, unsigned int numChars);
+    
     //This function outputs an 8-bit value to 8 specific IO lines that are
     //different from dbgOutputVal
     //This function is to be called at various locations in the code
