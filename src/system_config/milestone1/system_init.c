@@ -177,6 +177,8 @@ void SYS_Initialize ( void* data )
     DRV_TMR1_Initialize();
     /*Initialize TMR2 */
     DRV_TMR2_Initialize();
+    /*Initialize TMR3 */
+    DRV_TMR3_Initialize();
  
      sysObj.drvUsart0 = DRV_USART_Initialize(DRV_USART_INDEX_0, (SYS_MODULE_INIT *)NULL);
 

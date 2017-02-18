@@ -35,6 +35,9 @@
 #include "debug.h"
 /* TODO:  Include other files here if needed. */
 #define UNIT_TESTING true
+#define TEST_SPEED_TICKS 62
+#define TEST_SPEED_DURATION 20
+#define TEST_SPEED_IGNORE 10
 
 void automatedTesting();
 int mapChecksumTest();
@@ -46,6 +49,7 @@ int commQueueTest();
 void commQueueReceiveTest(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
 int navQueueTest();
 void navQueueReceiveTest(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
+void encoderSpeedTest(int speed);
 
 
 /* Provide C++ Compatibility */

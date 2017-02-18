@@ -150,6 +150,40 @@ _IntHandlerDrvTmrInstance2:
     .end	_IntHandlerDrvTmrInstance2
 
 
+/* TMR Instance 3 Interrupt */
+   .extern  IntHandlerDrvTmrInstance3
+
+   .section	.vector_16,code, keep
+   .equ     __vector_dispatch_16, IntVectorDrvTmrInstance3
+   .global  __vector_dispatch_16
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorDrvTmrInstance3
+
+IntVectorDrvTmrInstance3:
+    la    $26,  _IntHandlerDrvTmrInstance3         
+    jr    $26
+    nop
+	.end	IntVectorDrvTmrInstance3
+
+   .section	.DrvTmrInstance3_vector_text, code, keep
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  _IntHandlerDrvTmrInstance3
+
+_IntHandlerDrvTmrInstance3:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerDrvTmrInstance3
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	_IntHandlerDrvTmrInstance3
+
+
 
 /*******************************************************************************
  End of File

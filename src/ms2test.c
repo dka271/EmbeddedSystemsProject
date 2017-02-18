@@ -203,6 +203,25 @@ void navQueueReceiveTest(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
     dbgUARTVal(msg[1]);
     dbgUARTString("\"\n\r", 3);
 }
+
+//Samples 10 speeds, then checks if the average is close to the desired speed
+int speedTotal = 0;
+int testCount = 0;
+void encoderSpeedTest(int speed){
+    testCount++;
+    if (testCount > TEST_SPEED_IGNORE){
+        speedTotal += speed;
+    }
+    if (testCount == (TEST_SPEED_DURATION + TEST_SPEED_IGNORE)){
+        int averageSpeed = (int) speedTotal/TEST_SPEED_DURATION;
+        dbgUARTString("Encoder Timer Counter Test:\n\r", 29);
+        if (averageSpeed >= TEST_SPEED_TICKS - 2 && averageSpeed <= TEST_SPEED_TICKS + 2){
+            dbgUARTString("Test passed\n\r", 13);
+        }else{
+            dbgUARTString("Test failed\n\r", 13);
+        }
+    }
+}
     
     void automatedTesting() {
         if (UNIT_TESTING){

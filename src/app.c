@@ -209,6 +209,7 @@ void APP_Tasks ( void )
                 T5CONCLR = 0x0004;
                 bool thing1 = DRV_TMR1_Start();
                 bool thing2 = DRV_TMR2_Start();
+                bool thing3 = DRV_TMR3_Start();
                 //DRV_OC0_Start();
                 //DRV_OC1_Start();
                 //DRV_OC2_Start();
