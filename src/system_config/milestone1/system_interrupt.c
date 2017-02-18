@@ -73,11 +73,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 
-    
-void IntHandlerDrvTmrInstance0(void)
-{
+void IntHandlerDrvTmrInstance0(void) {
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
-    
+
     //Sample the timer counters and send their values to the navigation queue
     unsigned short t3 = TMR3;
     unsigned short t5 = TMR5;
@@ -93,33 +91,75 @@ void IntHandlerDrvTmrInstance0(void)
     msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
     //navSendMsgFromISR(msg2);
-    
+
     unsigned char msg3[MAP_QUEUE_BUFFER_SIZE];
     msg3[MAP_SOURCE_ID_IDX] = (MAP_MAPPING_TIMER_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
     msg3[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg3);
     mapSendMsgFromISR(msg3);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_AFTER_SEND);
-    
-    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
+
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_2);
+    unsigned char msg[COMM_QUEUE_BUFFER_SIZE];
+    msg[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000001) << COMM_SOURCE_ID_OFFSET;
+    msg[COMM_CHECKSUM_IDX] = commCalculateChecksum(msg);
+    commSendMsgFromISR(msg);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_EXIT);
 }
 
-void IntHandlerDrvTmrInstance1(void)
-{
+void IntHandlerDrvTmrInstance1(void) {
     dbgOutputLoc(DBG_LOC_TMR1_ISR_ENTER);
-    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_3);
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_3);
     dbgOutputLoc(DBG_LOC_TMR1_ISR_EXIT);
 }
-    
-void IntHandlerDrvTmrInstance2(void)
-{
+
+void IntHandlerDrvTmrInstance2(void) {
     dbgOutputLoc(DBG_LOC_TMR2_ISR_ENTER);
-    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_5);
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_5);
     dbgOutputLoc(DBG_LOC_TMR2_ISR_EXIT);
 }
-  
- 
+
+void IntHandlerDrvUsartInstance0(void) {
+    dbgOutputLoc(DBG_LOC_COMM_ENTER_UART_ISR);
+    if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_RECEIVE)) {
+        if (PLIB_USART_ReceiverDataIsAvailable(USART_ID_1)) {
+            char bufferToWriteTo[7];
+            int MY_BUFFER_SIZE = 7;
+            readPublic(bufferToWriteTo, MY_BUFFER_SIZE);
+            dbgOutputLoc(DBG_LOC_COMM_INSIDE_RX_INT);
+        }
+        PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_USART_1_RECEIVE);
+        //SYS_INT_SourceStatusClear(INT_SOURCE_USART_1_RECEIVE);
+    }
+    if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_TRANSMIT)) { 
+        dbgOutputLoc(DBG_LOC_COMM_ENTER_UART_WRITE_ISR);
+        while (1) {
+            if (!checkIfSendQueueIsEmpty()) {
+//                unsigned char bufferToReadFrom[SEND_QUEUE_BUFFER_SIZE];
+                unsigned char bufferToReadFrom[7];
+                if (PLIB_USART_TransmitterBufferIsFull(USART_ID_1)) {
+                    break;
+                }
+                uartReceiveFromSendQueueInISR(bufferToReadFrom);
+                writePublic(bufferToReadFrom);
+            } else {
+                dbgOutputLoc(DBG_LOC_COMM_DISABLE_UART_ISR);
+                PLIB_INT_SourceDisable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
+                break;
+
+            }
+        }
+
+        PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
+    }
+
+    if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_ERROR)) {
+        dbgPauseAll();
+    }
+    dbgOutputLoc(DBG_LOC_COMM_LEAVE_UART_WRITE_ISR);
+}
+
+
 /*******************************************************************************
  End of File
-*/
+ */
 

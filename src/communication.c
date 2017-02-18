@@ -76,11 +76,12 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     This structure should be initialized by the APP_Initialize function.
     
     Application strings and buffers are be defined outside this structure.
-*/
+ */
 
 COMMUNICATION_DATA communicationData;
 
 static QueueHandle_t commQueue;
+static QueueHandle_t sendQueue;
 
 // *****************************************************************************
 // *****************************************************************************
@@ -89,7 +90,7 @@ static QueueHandle_t commQueue;
 // *****************************************************************************
 
 /* TODO:  Add any necessary callback functions.
-*/
+ */
 
 // *****************************************************************************
 // *****************************************************************************
@@ -99,7 +100,7 @@ static QueueHandle_t commQueue;
 
 
 /* TODO:  Add any necessary local functions.
-*/
+ */
 
 
 // *****************************************************************************
@@ -116,42 +117,60 @@ static QueueHandle_t commQueue;
     See prototype in communication.h.
  */
 
-void COMMUNICATION_Initialize ( void )
-{
+void COMMUNICATION_Initialize(void) {
     /* Place the App state machine in its initial state. */
     communicationData.state = COMMUNICATION_STATE_INIT;
-    
+
     //Initialize the mapping queue
-    commQueue = xQueueCreate(10, sizeof(unsigned char[COMM_QUEUE_BUFFER_SIZE]));
-    if(commQueue == 0){
+    commQueue = xQueueCreate(10, sizeof (unsigned char[COMM_QUEUE_BUFFER_SIZE]));
+    //    sendQueue = xQueueCreate(10, sizeof (unsigned char[SEND_QUEUE_BUFFER_SIZE]));
+    sendQueue = xQueueCreate(10, sizeof (unsigned char));
+
+    if (commQueue == 0) {
         dbgPauseAll();
     }
 
-    
+
     /* TODO: Initialize your application's state machine and other
      * parameters.
      */
 }
 
-void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
-    BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
+void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
+    BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     xQueueSendToBackFromISR(commQueue, msg, NULL);
 }
 
-void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
-    BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
+void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
+    BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     xQueueSendToBack(commQueue, msg, portMAX_DELAY);
 }
-    
-unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
+
+void commSendMsgToSendQueue(unsigned char msg[7]) {
+    //BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
+    int i;
+    for (i=0; i < strlen(msg); i++) {
+        xQueueSendToBack(sendQueue, &msg[i], portMAX_DELAY);
+        PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
+    }
+}
+
+void uartReceiveFromSendQueueInISR(unsigned char msg[7]) {
+    xQueueReceiveFromISR(sendQueue, msg, NULL); //CHECK ME pdFalse, changes, go to taskYIED();)
+}
+
+bool checkIfSendQueueIsEmpty() {
+    return xQueueIsQueueEmptyFromISR(sendQueue);
+}
+
+unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
     unsigned char sum = 0;
     unsigned int i;
-    for (i = 0; i < COMM_QUEUE_BUFFER_SIZE - 1; i++){
+    for (i = 0; i < COMM_QUEUE_BUFFER_SIZE - 1; i++) {
         sum += msg[i];
     }
     return sum;
 }
-
 
 /******************************************************************************
   Function:
@@ -161,22 +180,19 @@ unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]){
     See prototype in communication.h.
  */
 
-void COMMUNICATION_Tasks ( void )
-{
+void COMMUNICATION_Tasks(void) {
     dbgOutputLoc(DBG_LOC_COMM_ENTER);
 
     /* Check the application's current state. */
-    switch ( communicationData.state )
-    {
-        /* Application's initial state. */
+    switch (communicationData.state) {
+            /* Application's initial state. */
         case COMMUNICATION_STATE_INIT:
         {
             bool appInitialized = true;
-       
-        
-            if (appInitialized)
-            {
-            
+
+
+            if (appInitialized) {
+
                 communicationData.state = COMMUNICATION_STATE_SERVICE_TASKS;
             }
             break;
@@ -185,23 +201,24 @@ void COMMUNICATION_Tasks ( void )
         case COMMUNICATION_STATE_SERVICE_TASKS:
         {
             unsigned char receivemsg[COMM_QUEUE_BUFFER_SIZE];
-            
+
             dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE);
-            while(1){
+            dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE_NEW_VAL);
+            while (1) {
                 //Block until a message is received
                 dbgOutputLoc(DBG_LOC_COMM_BEFORE_RECEIVE);
                 BaseType_t receiveCheck = xQueueReceive(commQueue, receivemsg, portMAX_DELAY);
                 dbgOutputLoc(DBG_LOC_COMM_AFTER_RECEIVE);
-                
+
                 //Handle the message
-                if(receiveCheck == pdTRUE){
+                if (receiveCheck == pdTRUE) {
                     //Convert the message into integer format
                     unsigned int receivemsgint0 = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
                     unsigned int receivemsgint1 = receivemsg[4] | (receivemsg[5] << 8) | (receivemsg[6] << 16) | (receivemsg[7] << 24);
                     //Get the message ID
                     int msgId = (receivemsg[COMM_SOURCE_ID_IDX] & COMM_SOURCE_ID_MASK) >> COMM_SOURCE_ID_OFFSET;
                     //Handle a specific message
-                    if (msgId == COMM_MAPPING_ID){
+                    if (msgId == COMM_MAPPING_ID) {
                         //Handle a message from the mapping thread
                         dbgOutputVal(receivemsg[0]);
                         dbgOutputVal(receivemsg[1]);
@@ -211,22 +228,25 @@ void COMMUNICATION_Tasks ( void )
                         dbgOutputVal(receivemsg[5]);
                         dbgOutputVal(receivemsg[6]);
                         dbgOutputVal(receivemsg[7]);
-                    }else if (msgId == COMM_UART_ID){
+                    } else if (msgId == COMM_UART_ID) {
                         //Handle input from the WiFly
-                        if (UNIT_TESTING){
+                        //if (handleChecking == true) {
+                        unsigned char bufferToReadFrom[] = "Team 7~";
+                        commSendMsgToSendQueue(bufferToReadFrom);
+                        //}
+                        if (UNIT_TESTING) {
                             commQueueReceiveTest(receivemsg);
                         }
                     }
                 }
             }
-        
             break;
         }
 
-        /* TODO: implement your application state machine.*/
-        
+            /* TODO: implement your application state machine.*/
 
-        /* The default state should never be executed. */
+
+            /* The default state should never be executed. */
         default:
         {
             /* TODO: Handle error in application's state machine. */
@@ -235,7 +255,26 @@ void COMMUNICATION_Tasks ( void )
     }
 }
 
- 
+void readPublic(char* bufferToWriteTo, int MY_BUFFER_SIZE) {
+    dbgOutputLoc(DBG_LOC_COMM_ENTER_READ);
+    int count;
+    //    DRV_HANDLE myUsartHandle = DRV_USART_Open(DRV_USART_INDEX_0, DRV_IO_INTENT_READ);
+    for (count = 0; count < MY_BUFFER_SIZE; count++) {
+        dbgOutputLoc(51);
+        bufferToWriteTo[count] = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
+        dbgOutputVal(bufferToWriteTo[count]);
+    }
+    dbgOutputLoc(DBG_LOC_COMM_LEAVE_READ);
+}
+
+void writePublic(char* bufferToReadFrom) {
+    dbgOutputLoc(DBG_LOC_COMM_ENTER_WRITE);
+    int count = 0;
+    dbgOutputLoc(DBG_LOC_COMM_WRITE_LOOP);
+    PLIB_USART_TransmitterByteSend(USART_ID_1, bufferToReadFrom[count]); //CHECK ME FOR BUFFER ACTUALLY CONTAINS CORRECT INFORMATION
+    count++;
+    dbgOutputLoc(DBG_LOC_COMM_LEAVE_WRITE);
+}
 
 /*******************************************************************************
  End of File
