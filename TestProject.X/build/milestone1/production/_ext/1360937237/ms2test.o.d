@@ -1,6 +1,6 @@
-build/milestone1/production/_ext/1360937237/debug.o:  \
-../src/debug.c  \
- ../src/debug.h  \
+build/milestone1/production/_ext/1360937237/ms2test.o:  \
+../src/ms2test.c  \
+ ../src/mapping.h  \
 ../src/system_config/milestone1/system_config.h  \
  ../src/system_config/milestone1/system_definitions.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/common/sys_common.h  \
@@ -264,7 +264,7 @@ build/milestone1/production/_ext/1360937237/debug.o:  \
  ../src/app.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/sys_msg.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/system/msg/config/sys_msg_config.h  \
- ../src/motor.h  \
+ ../src/debug.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/peripheral.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/adc/plib_adc.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/adc/processor/adc_processor.h  \
@@ -832,12 +832,12 @@ build/milestone1/production/_ext/1360937237/debug.o:  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_processor.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32xxxx.h  \
  ../../../../../../../microchip/harmony/v1_09/framework/peripheral/glcd/processor/glcd_p32mx795f512l.h  \
- ../src/ms2test.h  \
-../src/mapping.h  \
-../src/navigation_public.h  \
- ../src/communication_public.h  \
+ ../src/motor.h  \
+../src/ms2test.h  \
 ../src/mapping_public.h  \
  ../src/communication.h  \
+../src/communication_public.h  \
+ ../src/navigation_public.h  \
 ../src/navigation.h  \
 ../src/mapping.h  \
  ../src/communication.h 

@@ -49,6 +49,7 @@ extern "C" {
 #define NAV_SOURCE_ID_IDX 2
 #define NAV_SOURCE_ID_MASK 0xe0
 #define NAV_SOURCE_ID_OFFSET 5
+#define NAV_PWM_TIMER_ID 6
     
 unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 

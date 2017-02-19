@@ -158,8 +158,18 @@ void IntHandlerDrvUsartInstance0(void) {
     dbgOutputLoc(DBG_LOC_COMM_LEAVE_UART_WRITE_ISR);
 }
 
+void IntHandlerDrvTmrInstance3(void)
+{
+    unsigned char msg3[NAV_QUEUE_BUFFER_SIZE];
+    msg3[0] = 0;
+    msg3[1] = 0;
+    msg3[NAV_SOURCE_ID_IDX] = (NAV_PWM_TIMER_ID & 0x00000007) << NAV_SOURCE_ID_OFFSET;
+    msg3[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg3);
+    navSendMsgFromISR(msg3);
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_4);
+}
+
 
 /*******************************************************************************
  End of File
  */
-

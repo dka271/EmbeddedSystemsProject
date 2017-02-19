@@ -34,7 +34,8 @@
 #include "navigation_public.h"
 #include "debug.h"
 /* TODO:  Include other files here if needed. */
-#define UNIT_TESTING true
+//#define UNIT_TESTING true
+#define UNIT_TESTING false
 #define TEST_SPEED_TICKS 62
 #define TEST_SPEED_DURATION 20
 #define TEST_SPEED_IGNORE 10

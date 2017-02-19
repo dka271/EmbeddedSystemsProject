@@ -1,5 +1,5 @@
-build/milestone1/production/_ext/1555642536/rtos_hooks.o:  \
- ../src/system_config/milestone1/rtos_hooks.c  \
+build/milestone1/production/_ext/943189478/tasks.o:  \
+ ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/tasks.c  \
  ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/FreeRTOS.h  \
  ../src/system_config/milestone1/FreeRTOSConfig.h  \
  ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/projdefs.h  \
@@ -8,4 +8,7 @@ build/milestone1/production/_ext/1555642536/rtos_hooks.o:  \
  ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX/portmacro.h  \
  ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/mpu_wrappers.h  \
  ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/task.h  \
- ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/list.h 
+ ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/list.h  \
+ ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/timers.h  \
+ ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/task.h  \
+ ../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include/StackMacros.h 

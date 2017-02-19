@@ -185,6 +185,42 @@ _IntHandlerDrvTmrInstance3:
 
 
 
+
+/* USART Instance 0 Interrupt */
+
+   .extern  IntHandlerDrvUsartInstance0
+
+   .section	.vector_24,code, keep
+   .equ     __vector_dispatch_24, IntVectorDrvUsartInstance0
+   .global  __vector_dispatch_24
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorDrvUsartInstance0
+
+IntVectorDrvUsartInstance0:
+    la    $26,  _IntHandlerDrvUsartInstance0         
+    jr    $26
+    nop
+	.end	IntVectorDrvUsartInstance0
+
+   .section	.DrvUsartInstance0_vector_text, code, keep
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  _IntHandlerDrvUsartInstance0
+
+_IntHandlerDrvUsartInstance0:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerDrvUsartInstance0
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	_IntHandlerDrvUsartInstance0
+
+
 /*******************************************************************************
  End of File
  */
