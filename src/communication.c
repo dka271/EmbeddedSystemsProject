@@ -220,14 +220,14 @@ void COMMUNICATION_Tasks(void) {
                     //Handle a specific message
                     if (msgId == COMM_MAPPING_ID) {
                         //Handle a message from the mapping thread
-                        dbgOutputVal(receivemsg[0]);
-                        dbgOutputVal(receivemsg[1]);
-                        dbgOutputVal(receivemsg[2]);
-                        dbgOutputVal(receivemsg[3]);
-                        dbgOutputVal(receivemsg[4]);
-                        dbgOutputVal(receivemsg[5]);
-                        dbgOutputVal(receivemsg[6]);
-                        dbgOutputVal(receivemsg[7]);
+//                        dbgOutputVal(receivemsg[0]);
+//                        dbgOutputVal(receivemsg[1]);
+//                        dbgOutputVal(receivemsg[2]);
+//                        dbgOutputVal(receivemsg[3]);
+//                        dbgOutputVal(receivemsg[4]);
+//                        dbgOutputVal(receivemsg[5]);
+//                        dbgOutputVal(receivemsg[6]);
+//                        dbgOutputVal(receivemsg[7]);
                     } else if (msgId == COMM_UART_ID) {
                         //Handle input from the WiFly
                         //if (handleChecking == true) {

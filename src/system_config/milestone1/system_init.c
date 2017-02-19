@@ -170,7 +170,6 @@ void SYS_Initialize ( void* data )
     SYS_PORTS_Initialize();
 
     /* Initialize Drivers */
-    /* Initialize the OC Driver */
     /*Initialize TMR0 */
     DRV_TMR0_Initialize();
     /*Initialize TMR1 */

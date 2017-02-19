@@ -85,10 +85,6 @@
         <Path>Header Files/framework/system</Path>
       </File>
       <File>
-        <Name>drv_oc.h</Name>
-        <Path>Header Files/framework/driver/oc</Path>
-      </File>
-      <File>
         <Name>timers.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
@@ -281,17 +277,12 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>98C087ABED1CA9E8C1A44DC16D0FE4AA</Checksum>
+        <Checksum>2D7E0CA8DD5E52E3976B9AA70D93F73C</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
-      </Template>
-      <Template>
-        <Name>drv_oc_static.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/oc/src</Path>
-        <Checksum>0D82DBC9B52D02C04105947EE2BF2C96</Checksum>
       </Template>
       <Template>
         <Name>drv_usart_static.c</Name>
@@ -314,11 +305,6 @@
         <Checksum>AE37BD63B6EC9F6ADD6B8006CE192FCB</Checksum>
       </Template>
       <Template>
-        <Name>drv_oc_static.h</Name>
-        <Path>Header Files/app/system_config/milestone1/framework/driver/oc</Path>
-        <Checksum>D6FE5ECEFB0C91B07C34D335664F4885</Checksum>
-      </Template>
-      <Template>
         <Name>drv_usart_static_local.h</Name>
         <Path>Header Files/app/system_config/milestone1/framework/driver/usart/src</Path>
         <Checksum>2C3E6EE85E05512BB9836B81EB3DB0E4</Checksum>
@@ -339,7 +325,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
-        <Checksum>CEA84FE3C3AF6044C41EEFAB210D0C9B</Checksum>
+        <Checksum>B796771246C2D460D9C88A5CAF147811</Checksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
@@ -351,15 +337,10 @@
         <Path>Source Files/app</Path>
       </Template>
       <Template>
-        <Name>drv_oc_mapping.c</Name>
-        <Path>Source Files/app/system_config/milestone1/framework/driver/oc/src</Path>
-        <Checksum>D499E378CA8D355017C5DA7740514BFF</Checksum>
-      </Template>
-      <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>AD1EB813D9CF8D1818C94BC9BD15DF47</Checksum>
-        <ProjectFileChecksum>4E9E97DB555DE248D953FFD3CE8E2BF2</ProjectFileChecksum>
+        <ProjectFileChecksum>F69D0E3F60B46C173341CC17DAC1AA61</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>mapping.h</Name>
@@ -378,7 +359,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/milestone1</Path>
-        <Checksum>99EB32CC9B583F8D24ADCCA2AFED652A</Checksum>
+        <Checksum>869A4B0C708C2A75FEF4225CB30BBBBC</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -401,24 +382,24 @@
     </Templates>
     <CompilerItems>
       <C32-AS>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\system_config\milestone1"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\milestone1"/>
+        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src"/>
+        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\system_config\milestone1"/>
+        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\milestone1"/>
         <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\system_config\milestone1\framework"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="C:\Users\Zea mays\Desktop\EmbeddedRepo\EmbeddedSystemsProject\firmware\src\system_config\milestone1\framework"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
         <Define value="__XC"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>
