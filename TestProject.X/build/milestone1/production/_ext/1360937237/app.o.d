@@ -837,7 +837,9 @@ build/milestone1/production/_ext/1360937237/app.o:  \
  ../src/navigation_public.h  \
 ../src/communication_public.h  \
  ../src/communication.h  \
+../src/jsmn.h  \
+../src/myjson.h  \
 ../src/ms2test.h  \
-../src/mapping.h  \
- ../src/communication.h  \
+ ../src/mapping.h  \
+../src/communication.h  \
 ../src/app_public.h 

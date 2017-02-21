@@ -83,6 +83,8 @@ COMMUNICATION_DATA communicationData;
 static QueueHandle_t commQueue;
 static QueueHandle_t sendQueue;
 
+
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -99,6 +101,8 @@ static QueueHandle_t sendQueue;
 // *****************************************************************************
 
 
+            int NumBadChecksums = 0;
+            int NumDroppedMessages = 0;
 /* TODO:  Add any necessary local functions.
  */
 
@@ -129,8 +133,7 @@ void COMMUNICATION_Initialize(void) {
     if (commQueue == 0) {
         dbgPauseAll();
     }
-
-
+    
     /* TODO: Initialize your application's state machine and other
      * parameters.
      */
@@ -146,13 +149,78 @@ void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
     xQueueSendToBack(commQueue, msg, portMAX_DELAY);
 }
 
-void commSendMsgToSendQueue(unsigned char msg[7]) {
+void constructFieldItem(fieldItem *object, unsigned char objectType, unsigned char versionNum, unsigned char length, unsigned char width, unsigned char centerX, unsigned char centerY, unsigned char orientation) {
+    object->objectType = objectType;
+    object->versionNumber = versionNum;
+    object->length = length;
+    object->width = width;
+    object->centerX = centerX;
+    object->centerY = centerY;
+    object->orientation = orientation;
+}
+
+void convertFieldItemToJSON(unsigned char jsonFieldItem[76], fieldItem object, unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
+    unsigned char jsonFieldItemTemp[70];
+    unsigned char jsonFieldItemEnd[6];
+    int checkSum;
+    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[\"%c\",%d,%d,%d,%d,%d,%d],\"C\":", source, dest, messageType, seqNum, object.objectType, object.versionNumber, object.length, object.width, object.centerX, object.centerY, object.orientation);
+    checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
+    sprintf(jsonFieldItemEnd, "%d}~", checkSum);
+    strcpy(jsonFieldItem, jsonFieldItemTemp);
+    strcat(jsonFieldItem, jsonFieldItemEnd);
+}
+
+void convertSensorMsgToJson(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
+    unsigned char jsonFieldItemTemp[70];
+    unsigned char jsonFieldItemEnd[6];
+    int checkSum;
+    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"C\":", source, dest, messageType, seqNum);
+    checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
+    sprintf(jsonFieldItemEnd, "%d}~", checkSum);
+    strcpy(jsonFieldItem, jsonFieldItemTemp);
+    strcat(jsonFieldItem, jsonFieldItemEnd);
+}
+
+void convertSensorMsgToJsonWithData(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
+    unsigned char jsonFieldItemTemp[70];
+    unsigned char jsonFieldItemEnd[6];
+    int checkSum;
+    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d,%d],\"C\":", source, dest, messageType, seqNum, NumBadChecksums, NumDroppedMessages);
+    checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
+    sprintf(jsonFieldItemEnd, "%d}~", checkSum);
+    strcpy(jsonFieldItem, jsonFieldItemTemp);
+    strcat(jsonFieldItem, jsonFieldItemEnd);
+}
+
+int SeqNum = 1;
+void commSendMsgToSendQueue(unsigned char testString[RECEIVE_BUFFER_SIZE]) {
     //BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     int i;
-    for (i=0; i < strlen(msg); i++) {
-        xQueueSendToBack(sendQueue, &msg[i], portMAX_DELAY);
+    //unsigned char testString[76];
+//    fieldItem item;
+//    constructFieldItem(&item, 'o', (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
+//    convertSensorMsgToJson(testString, 's', 'f', 'm', (unsigned char)SeqNum);
+    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char)SeqNum);
+    SeqNum++;
+    if (SeqNum >= 64){
+        SeqNum = 0;
+    }
+    
+    for (i=0; i < strlen(testString); i++) {
+        xQueueSendToBack(sendQueue, &testString[i], portMAX_DELAY);
         PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
     }
+}
+
+int calculateJsonStringCheckSum(unsigned char* string) {
+    int i;
+    int checkSum = 0;
+    for (i=0; i < strlen(string); i++) {
+        checkSum += string[i];
+    }
+    checkSum += '}';
+    //checkSum += '~';
+    return checkSum;
 }
 
 void uartReceiveFromSendQueueInISR(unsigned char msg[7]) {
@@ -201,6 +269,9 @@ void COMMUNICATION_Tasks(void) {
         case COMMUNICATION_STATE_SERVICE_TASKS:
         {
             unsigned char receivemsg[COMM_QUEUE_BUFFER_SIZE];
+//            unsigned char receiveFromWifiBuffer[RECEIVE_BUFFER_SIZE];
+//            unsigned int receiveFromWifiBufferIdx = 0;
+            int PreviousSequenceNumber = 0;
 
             dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE);
             dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE_NEW_VAL);
@@ -220,23 +291,82 @@ void COMMUNICATION_Tasks(void) {
                     //Handle a specific message
                     if (msgId == COMM_MAPPING_ID) {
                         //Handle a message from the mapping thread
-//                        dbgOutputVal(receivemsg[0]);
-//                        dbgOutputVal(receivemsg[1]);
-//                        dbgOutputVal(receivemsg[2]);
-//                        dbgOutputVal(receivemsg[3]);
-//                        dbgOutputVal(receivemsg[4]);
-//                        dbgOutputVal(receivemsg[5]);
-//                        dbgOutputVal(receivemsg[6]);
-//                        dbgOutputVal(receivemsg[7]);
+                        dbgOutputLoc(DBG_LOC_COMM_IF_MAPPING);
                     } else if (msgId == COMM_UART_ID) {
                         //Handle input from the WiFly
-                        //if (handleChecking == true) {
-                        unsigned char bufferToReadFrom[] = "Team 7~";
-                        commSendMsgToSendQueue(bufferToReadFrom);
-                        //}
+                        dbgOutputLoc(DBG_LOC_COMM_IF_UART);
                         if (UNIT_TESTING) {
                             commQueueReceiveTest(receivemsg);
+                        }else{
+                            //Parse that stuff
+                            fieldItem testFieldItem;
+                            unsigned char Source;
+                            unsigned char Dest;
+                            unsigned char *MessageType;
+                            unsigned char SequenceNumber;
+                            int Checksum;
+//                            Nop();
+                            if (jsonGetSource(receivemsg, &Source)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-1);
+                            }
+//                            dbgOutputVal(Source);
+                            if (jsonGetDestination(receivemsg, &Dest)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-2);
+                            }
+//                            dbgOutputVal(Dest);
+                            if (jsonGetMessageType(receivemsg, MessageType)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-3);
+                            }
+                            if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-4);
+                            }
+                            //Check Sequence Number
+                            if (SequenceNumber == PreviousSequenceNumber + 1){
+                                //This is good.
+                            }else if (PreviousSequenceNumber == 63 && SequenceNumber == 0){
+                                //This is also good.
+                            }else{
+                                //This is bad
+                                NumDroppedMessages++;
+                                dbgOutputVal(NumDroppedMessages);
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
+                            }
+                            PreviousSequenceNumber = SequenceNumber;
+                            if (jsonGetChecksum(receivemsg, &Checksum)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-5);
+                            }
+                            //Check Checksum
+                            unsigned char ChecksumStr[6];
+                            if (jsonGetChecksumString(receivemsg, ChecksumStr)){
+                                //bad
+                            }else{
+                                int ChecksumStrChecksum = ChecksumStr[0] + ChecksumStr[1] + ChecksumStr[2] + ChecksumStr[3];
+                                int ChecksumDiff = calcSimpleChecksum(receivemsg) - ChecksumStrChecksum;
+                                if (ChecksumDiff == Checksum){
+                                    //Checksums check out
+                                }else{
+                                    //bad
+                                    NumBadChecksums++;
+                                    dbgOutputVal(NumBadChecksums);
+                                    dbgOutputLoc(DBG_LOC_BAD_ERROR-7);
+                                }
+                            }
+                            
+//                            if (jsonGetFieldItem(receivemsg, &testFieldItem)){
+//                                //error
+//                                dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
+//                            }
                         }
+                    } else if (msgId == COMM_SEND_ID) {
+                        //Handle sending
+                        dbgOutputLoc(DBG_LOC_COMM_IF_SEND);
+                        unsigned char bufferToReadFrom[RECEIVE_BUFFER_SIZE];
+                        commSendMsgToSendQueue(bufferToReadFrom);
                     }
                 }
             }
@@ -255,16 +385,236 @@ void COMMUNICATION_Tasks(void) {
     }
 }
 
+int calcSimpleChecksum(unsigned char* stringToCalculateFrom) {
+    int checkSum=0;
+    int j=0;
+    while (stringToCalculateFrom[j] != '~' && stringToCalculateFrom[j] != '}') {
+        j++;
+        if (j > 254) {
+            break;
+        }
+    }
+    j++;
+    int i;
+    for (i=0; i < j; i++) {
+        checkSum += stringToCalculateFrom[i];
+    }
+    return checkSum;
+}
+
 void readPublic(char* bufferToWriteTo, int MY_BUFFER_SIZE) {
     dbgOutputLoc(DBG_LOC_COMM_ENTER_READ);
     int count;
     //    DRV_HANDLE myUsartHandle = DRV_USART_Open(DRV_USART_INDEX_0, DRV_IO_INTENT_READ);
     for (count = 0; count < MY_BUFFER_SIZE; count++) {
         dbgOutputLoc(51);
-        bufferToWriteTo[count] = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
-        dbgOutputVal(bufferToWriteTo[count]);
+        unsigned char receivedByte = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
+        bufferToWriteTo[count] = receivedByte;
+        
+//        dbgOutputVal(bufferToWriteTo[count]);
     }
     dbgOutputLoc(DBG_LOC_COMM_LEAVE_READ);
+}
+
+unsigned char bufferToWrite2[COMM_QUEUE_BUFFER_SIZE];
+unsigned int bufferToWrite2Idx = 0;
+void readPublic2(char* bufferToWriteTo, int MY_BUFFER_SIZE) {
+    dbgOutputLoc(DBG_LOC_COMM_ENTER_READ);
+//    int count;
+    //    DRV_HANDLE myUsartHandle = DRV_USART_Open(DRV_USART_INDEX_0, DRV_IO_INTENT_READ);
+//    for (count = 0; count < MY_BUFFER_SIZE; count++) {
+    dbgOutputLoc(51);
+    unsigned char receivedByte = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
+    
+
+    //Handle start and end bytes
+    if (receivedByte == '~'){
+        bufferToWrite2[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000003) << COMM_SOURCE_ID_OFFSET;
+        bufferToWrite2[COMM_CHECKSUM_IDX] = commCalculateChecksum(bufferToWrite2);
+        commSendMsgFromISR(bufferToWrite2);
+    }else if (receivedByte == '*'){
+//        bufferToWrite2 = "";
+        bufferToWrite2Idx = 0;
+        bufferToWrite2[bufferToWrite2Idx] = receivedByte;
+        bufferToWrite2Idx++;
+    } else {
+        bufferToWrite2[bufferToWrite2Idx] = receivedByte;
+        bufferToWrite2Idx++;
+    }
+        
+//        dbgOutputVal(bufferToWriteTo[count]);
+//    }
+    dbgOutputLoc(DBG_LOC_COMM_LEAVE_READ);
+}
+
+//This function begins reading when a start byte is found and stops reading when an end byte is found
+//It writes into a buffer that is big enough to store an entire JSON message
+//When an end byte is received, the buffer is parsed by a JSON parser, an object is created, and it is sent to the queue
+//unsigned char receiveFromWifiBuffer[RECEIVE_BUFFER_SIZE];
+//unsigned int receiveFromWifiBufferIdx = 0;
+//void readPublicIntoBuffer(){
+//    dbgOutputLoc(DBG_LOC_COMM_ENTER_READ);
+//    int count;
+//    int max = RECEIVE_BUFFER_SIZE - receiveFromWifiBufferIdx;
+//    for (count = 0; count < max; count++) {
+//        dbgOutputLoc(51);
+//        unsigned char receivedByte = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
+//        
+//        //Handle the received byte
+//        if (receiveFromWifiBufferIdx >= RECEIVE_BUFFER_SIZE){
+//            //This is bad, you should not get here
+//            dbgOutputLoc(DBG_LOC_BAD_ERROR);
+//        }else if (receivedByte == '~'){
+//            //End byte
+//            //Parse the array
+//            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+//            receiveFromWifiBufferIdx++;
+////            parseReceiveBuffer();
+//        }else if (receivedByte == '*'){
+//            //Start byte
+//            //Reset the index
+//            receiveFromWifiBufferIdx = 0;
+//            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+//            receiveFromWifiBufferIdx++;
+//        }else{
+//            //Put the byte in the queue
+//            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+//            receiveFromWifiBufferIdx++;
+//        }
+//    }
+//    dbgOutputLoc(DBG_LOC_COMM_LEAVE_READ);
+//}
+
+unsigned char receiveFromWifiBuffer[RECEIVE_BUFFER_SIZE];
+unsigned int receiveFromWifiBufferIdx = 0;
+int readPublicIntoBuffer2(char bufferToWriteTo[COMM_QUEUE_BUFFER_SIZE]){
+    dbgOutputLoc(DBG_LOC_COMM_ENTER_READ);
+    int count;
+    //int max = RECEIVE_BUFFER_SIZE - receiveFromWifiBufferIdx;
+    int finished = 0;
+    for (count = 0; count < RECEIVE_BUFFER_SIZE; count++) {
+        dbgOutputLoc(51);
+        unsigned char receivedByte = PLIB_USART_ReceiverByteReceive(DRV_USART_INDEX_0);
+        
+        //Handle the received byte
+        if (receiveFromWifiBufferIdx >= RECEIVE_BUFFER_SIZE){
+            //This is bad, you should not get here
+            dbgOutputLoc(DBG_LOC_BAD_ERROR);
+        }else if (receivedByte == '~'){
+            //End byte
+            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+            receiveFromWifiBufferIdx++;
+            strcpy(bufferToWriteTo,receiveFromWifiBuffer);
+            finished = 1;
+        }else if (receivedByte == '*'){
+            //Start byte
+            //Reset the index
+            receiveFromWifiBufferIdx = 0;
+            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+            receiveFromWifiBufferIdx++;
+        }else if (receivedByte == 0){
+            //null byte
+        }else{
+            //Put the byte in the queue
+            receiveFromWifiBuffer[receiveFromWifiBufferIdx] = receivedByte;
+            receiveFromWifiBufferIdx++;
+        }
+    }
+    return finished;
+    dbgOutputLoc(DBG_LOC_COMM_LEAVE_READ);
+}
+
+
+
+
+//Parse the contents of the receive buffer from JSON to a usable struct
+//Pass the struct to to the comms queue
+unsigned char parseBuffer[8];
+int parseReceiveBuffer(fieldItem * toSend){
+    unsigned char msg[COMM_QUEUE_BUFFER_SIZE];
+    //Make sure the parser doesn't freak out about the start byte
+    if (receiveFromWifiBuffer[0] == '*'){
+        receiveFromWifiBuffer[0] = ' ';
+    }
+    //Parse the JSON
+    jsmn_parser parser;
+    jsmn_init(&parser);
+    jsmntok_t tokens[32];
+    int numKeys = jsmn_parse(&parser, receiveFromWifiBuffer, RECEIVE_BUFFER_SIZE, tokens, sizeof(tokens)/sizeof(tokens[0]));
+	if (numKeys < 0) {
+		//There was a parse error
+		return 0;
+	}
+    
+    unsigned char destination = 0;
+    unsigned char source = 0;
+    unsigned char messageType = 0;
+    unsigned int sequenceNumber = 0;
+    unsigned int checksum = 0;
+    
+    int i;
+    for (i = 1; i < numKeys; i++){
+        if (jsoneq(receiveFromWifiBuffer, &tokens[i], "S") == 0){
+            //Message Source
+            snprintf(parseBuffer, 8, "%.*s", tokens[i+1].end-tokens[i+1].start, receiveFromWifiBuffer + tokens[i+1].start);
+            source = parseBuffer[0];
+            i++;
+        }else if (jsoneq(receiveFromWifiBuffer, &tokens[i], "T") == 0){
+            //Message Destination
+            snprintf(parseBuffer, 8, "%.*s", tokens[i+1].end-tokens[i+1].start, receiveFromWifiBuffer + tokens[i+1].start);
+            destination = parseBuffer[0];
+            i++;
+        }else if (jsoneq(receiveFromWifiBuffer, &tokens[i], "M") == 0){
+            //Message Type
+            snprintf(parseBuffer, 8, "%.*s", tokens[i+1].end-tokens[i+1].start, receiveFromWifiBuffer + tokens[i+1].start);
+            messageType = parseBuffer[0];
+            i++;
+        }else if (jsoneq(receiveFromWifiBuffer, &tokens[i], "N") == 0){
+            //Sequence Number
+            snprintf(parseBuffer, 8, "%.*s", tokens[i+1].end-tokens[i+1].start, receiveFromWifiBuffer + tokens[i+1].start);
+            sequenceNumber = atoi(parseBuffer);
+            i++;
+        }else if (jsoneq(receiveFromWifiBuffer, &tokens[i], "C") == 0){
+            //Checksum
+            snprintf(parseBuffer, 8, "%.*s", tokens[i+1].end-tokens[i+1].start, receiveFromWifiBuffer + tokens[i+1].start);
+            checksum = atoi(parseBuffer);
+            i++;
+        }else if (jsoneq(receiveFromWifiBuffer, &tokens[i], "D") == 0){
+            //Data Array
+            int j;
+			if (tokens[i+1].type != JSMN_ARRAY) {
+				continue; /* We expect groups to be an array of strings */
+			}
+            unsigned char chars[7];
+			for (j = 0; j < tokens[i+1].size; j++) {
+				jsmntok_t *g = &tokens[i+j+2];
+				snprintf(parseBuffer, 8, "%.*s", g->end - g->start, receiveFromWifiBuffer + g->start);
+                if (j == 0){
+                    chars[j] = parseBuffer[0];
+                }else{
+                    chars[j] = (unsigned char) atoi(parseBuffer);
+                }
+                dbgOutputVal('X');
+                dbgOutputVal(chars[j]);
+			}
+            constructFieldItem(toSend, chars[0], chars[1], chars[2], chars[3], chars[4], chars[5], chars[6]);
+			i += tokens[i+1].size + 1;
+        }
+    }
+    
+    //Send the message
+    msg[0] = toSend->orientation;
+    msg[1] = toSend->centerY;
+    msg[2] = toSend->centerX;
+    msg[3] = toSend->width;
+    msg[4] = toSend->length;
+    msg[5] = toSend->versionNumber;
+    msg[6] = toSend->objectType;
+    msg[COMM_SOURCE_ID_IDX] = (sequenceNumber & 0x3f);
+    msg[COMM_SOURCE_ID_IDX] |= COMM_UART_ID << COMM_SOURCE_ID_OFFSET;
+    msg[COMM_CHECKSUM_IDX] = commCalculateChecksum(msg);
+    commSendMsgFromISR(msg);
+    return 1;
 }
 
 void writePublic(char* bufferToReadFrom) {

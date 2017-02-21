@@ -127,6 +127,8 @@
       </logicalFolder>
       <itemPath>../src/debug.h</itemPath>
       <itemPath>../src/motor.h</itemPath>
+      <itemPath>../src/jsmn.h</itemPath>
+      <itemPath>../src/myjson.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -223,6 +225,8 @@
       </logicalFolder>
       <itemPath>../src/debug.c</itemPath>
       <itemPath>../src/motor.c</itemPath>
+      <itemPath>../src/jsmn.c</itemPath>
+      <itemPath>../src/myjson.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

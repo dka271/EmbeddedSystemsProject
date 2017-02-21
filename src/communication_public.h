@@ -38,20 +38,34 @@ extern "C" {
     
 #define COMM_UART_ID 0
 #define COMM_MAPPING_ID 1
+#define COMM_SEND_ID 2
 
 #define SEND_QUEUE_BUFFER_SIZE 216 
-#define COMM_QUEUE_BUFFER_SIZE 8
-#define COMM_CHECKSUM_IDX 7
-#define COMM_SOURCE_ID_IDX 6
-#define COMM_SOURCE_ID_MASK 0x80
-#define COMM_SOURCE_ID_OFFSET 7
-
+#define RECEIVE_BUFFER_SIZE 216 
+#define COMM_QUEUE_BUFFER_SIZE 218
+#define COMM_CHECKSUM_IDX 217
+#define COMM_SOURCE_ID_IDX 216
+#define COMM_SOURCE_ID_MASK 0xc0
+#define COMM_SOURCE_ID_OFFSET 6
     
+typedef struct {
+    unsigned char objectType;
+    unsigned char centerX;
+    unsigned char centerY;
+    unsigned char width;
+    unsigned char length;
+    unsigned char orientation;
+    unsigned char versionNumber;
+} fieldItem;
+
 unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
     
 void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
 void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
 void readPublic(char* bufferToWriteTo, int size);
+void readPublic2(char* bufferToWriteTo, int size);
+//void readPublicIntoBuffer();
+int readPublicIntoBuffer2(char bufferToWriteTo[COMM_QUEUE_BUFFER_SIZE]);
 void writePublic(char* bufferToReadFrom);
 void uartReceiveFromSendQueueInISR(unsigned char msg[SEND_QUEUE_BUFFER_SIZE]);
 

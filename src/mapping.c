@@ -209,20 +209,20 @@ void MAPPING_Tasks ( void )
                     //Handle a specific message
                     if (msgId == MAP_NAVIGATION_ID){
                         //Handle a message from the navigation thread
-                        dbgOutputVal(receivemsg[0]);
-                        dbgOutputVal(receivemsg[1]);
-                        dbgOutputVal(receivemsg[2]);
-                        dbgOutputVal(receivemsg[3]);
-                        dbgOutputVal(receivemsg[4]);
-                        dbgOutputVal(receivemsg[5]);
-                        dbgOutputVal(receivemsg[6]);
-                        dbgOutputVal(receivemsg[7]);
-                        dbgOutputVal(receivemsg[8]);
-                        dbgOutputVal(receivemsg[9]);
-                        dbgOutputVal(receivemsg[10]);
-                        dbgOutputVal(receivemsg[11]);
-                        dbgOutputVal(receivemsg[12]);
-                        dbgOutputVal(receivemsg[13]);
+//                        dbgOutputVal(receivemsg[0]);
+//                        dbgOutputVal(receivemsg[1]);
+//                        dbgOutputVal(receivemsg[2]);
+//                        dbgOutputVal(receivemsg[3]);
+//                        dbgOutputVal(receivemsg[4]);
+//                        dbgOutputVal(receivemsg[5]);
+//                        dbgOutputVal(receivemsg[6]);
+//                        dbgOutputVal(receivemsg[7]);
+//                        dbgOutputVal(receivemsg[8]);
+//                        dbgOutputVal(receivemsg[9]);
+//                        dbgOutputVal(receivemsg[10]);
+//                        dbgOutputVal(receivemsg[11]);
+//                        dbgOutputVal(receivemsg[12]);
+//                        dbgOutputVal(receivemsg[13]);
                         
                         unsigned char msg2[6];
                         msg2[0] = 0x1f;
@@ -246,7 +246,7 @@ void MAPPING_Tasks ( void )
                         //Handle input from the second IR sensor
                     }else if (msgId == MAP_MAPPING_TIMER_ID){
                         //Start sampling
-                        dbgOutputVal(receivemsg[13]);
+//                        dbgOutputVal(receivemsg[13]);
                         
                         unsigned char msg1[NAV_QUEUE_BUFFER_SIZE];
                         msg1[0] = 0x5a;

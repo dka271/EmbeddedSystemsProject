@@ -836,6 +836,8 @@ build/milestone1/production/_ext/383799649/sys_clk_static.o:  \
 ../src/communication_public.h  \
  ../src/mapping_public.h  \
 ../src/communication.h  \
+../src/jsmn.h  \
+ ../src/myjson.h  \
 ../src/navigation.h  \
- ../src/mapping.h  \
-../src/communication.h 
+../src/mapping.h  \
+ ../src/communication.h 

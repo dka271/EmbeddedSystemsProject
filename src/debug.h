@@ -80,6 +80,7 @@ extern "C" {
 #define EXAMPLE_CONSTANT 0
     
 //Constants that refer to specific parts of the code
+#define DBG_LOC_BAD_ERROR 0xff
 #define DBG_LOC_PAUSE_ALL 1
 #define DBG_LOC_TMR0_ISR_ENTER 2
 #define DBG_LOC_TMR0_ISR_EXIT 3
@@ -123,6 +124,9 @@ extern "C" {
 #define DBG_LOC_COMM_ENTER_UART_ISR 50
 #define DBG_LOC_COMM_WRITE_LOOP 51
 #define DBG_LOC_COMM_DISABLE_UART_ISR 52
+#define DBG_LOC_COMM_IF_MAPPING 53
+#define DBG_LOC_COMM_IF_UART 54
+#define DBG_LOC_COMM_IF_SEND 55
 #define DBG_LOC_COMM_BEFORE_WHILE_NEW_VAL 88
 
 

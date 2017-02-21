@@ -68,6 +68,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/msg/sys_msg.h"
 #include "debug.h"
 #include "motor.h"
+#include "jsmn.h"
+#include "myjson.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
@@ -103,6 +105,28 @@ typedef enum
 	/* TODO: Define states used by the application state machine. */
 
 } COMMUNICATION_STATES;
+
+
+//--------------------------------------------------------------------------------------------
+//My Functions
+//--------------------------------------------------------------------------------------------
+//Parse the wifi buffer, create a struct containing the object, and send it to the comms queue
+//Returns 1 if no error occurred, 0 otherwise
+int parseReceiveBuffer();
+int calcSimpleChecksum(unsigned char* stringToCalculateFrom);
+
+//Copy pasted from JSMN example
+//Compares a string to a part of the JSON array pointed to by a token
+static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
+			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+		return 0;
+	}
+	return -1;
+}
+//--------------------------------------------------------------------------------------------
+//End My Functions
+//--------------------------------------------------------------------------------------------
 
 
 // *****************************************************************************

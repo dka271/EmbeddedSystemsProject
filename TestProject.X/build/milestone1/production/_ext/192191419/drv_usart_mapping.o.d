@@ -836,6 +836,8 @@ build/milestone1/production/_ext/192191419/drv_usart_mapping.o:  \
 ../src/communication_public.h  \
  ../src/mapping_public.h  \
 ../src/communication.h  \
+../src/jsmn.h  \
+ ../src/myjson.h  \
 ../src/navigation.h  \
- ../src/mapping.h  \
-../src/communication.h 
+../src/mapping.h  \
+ ../src/communication.h 

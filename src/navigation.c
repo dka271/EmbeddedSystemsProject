@@ -322,8 +322,8 @@ void NAVIGATION_Tasks ( void )
                         //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
                         //dbgOutputVal(receivemsgint & 0x000000ff);
                         speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
-                        dbgUARTVal(speed1);
-                        dbgOutputVal(speed1);
+//                        dbgUARTVal(speed1);
+//                        dbgOutputVal(speed1);
                         previousValue1 = receivemsgint & 0x0000ffff;
                         
                         //Handle PWM stuff
@@ -368,7 +368,7 @@ void NAVIGATION_Tasks ( void )
                         //int ticksTarget = TEST_SPEED_TICKS;
                         Motor1SetPWM(GetPWMFromValue(m1PID, pwmCount));
                         Motor2SetPWM(GetPWMFromValue(m2PID, pwmCount));
-                        dbgOutputVal(m1PID);
+//                        dbgOutputVal(m1PID);
                         //dbgOutputVal(m2PID);
                         pwmCount++;
                         if (pwmCount >= 25){

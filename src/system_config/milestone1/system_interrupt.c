@@ -100,7 +100,7 @@ void IntHandlerDrvTmrInstance0(void) {
 
     PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_2);
     unsigned char msg[COMM_QUEUE_BUFFER_SIZE];
-    msg[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000001) << COMM_SOURCE_ID_OFFSET;
+    msg[COMM_SOURCE_ID_IDX] = (COMM_SEND_ID & 0x00000003) << COMM_SOURCE_ID_OFFSET;
     msg[COMM_CHECKSUM_IDX] = commCalculateChecksum(msg);
     commSendMsgFromISR(msg);
     dbgOutputLoc(DBG_LOC_TMR0_ISR_EXIT);
@@ -122,9 +122,16 @@ void IntHandlerDrvUsartInstance0(void) {
     dbgOutputLoc(DBG_LOC_COMM_ENTER_UART_ISR);
     if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_RECEIVE)) {
         if (PLIB_USART_ReceiverDataIsAvailable(USART_ID_1)) {
-            char bufferToWriteTo[7];
-            int MY_BUFFER_SIZE = 7;
-            readPublic(bufferToWriteTo, MY_BUFFER_SIZE);
+            char bufferToWriteTo[COMM_QUEUE_BUFFER_SIZE];
+            //int MY_BUFFER_SIZE = 7;
+            readPublic2(bufferToWriteTo, COMM_QUEUE_BUFFER_SIZE - 2);
+//            if (readPublicIntoBuffer2(bufferToWriteTo)){
+//                bufferToWriteTo[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000003) << COMM_SOURCE_ID_OFFSET;
+//                bufferToWriteTo[COMM_CHECKSUM_IDX] = commCalculateChecksum(bufferToWriteTo);
+//                commSendMsgFromISR(bufferToWriteTo);
+//            }
+            //readPublicIntoBuffer();
+            
             dbgOutputLoc(DBG_LOC_COMM_INSIDE_RX_INT);
         }
         PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_USART_1_RECEIVE);
