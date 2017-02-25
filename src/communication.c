@@ -102,11 +102,11 @@ void constructFieldItem(fieldItem *object, unsigned char objectType, unsigned ch
     object->orientation = orientation;
 }
 
-void convertFieldItemToJSON(unsigned char jsonFieldItem[76], fieldItem object, unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+void convertFieldItemToJSON(unsigned char jsonFieldItem[208], fieldItem object, unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
-    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[\"%c\",%d,%d,%d,%d,%d,%d],\"C\":", source, dest, messageType, seqNum, object.objectType, object.versionNumber, object.length, object.width, object.centerX, object.centerY, object.orientation);
+    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d,%d],\"F\":[%d,%d,%d,%d,%d,%d,%d],\"C\":", source, dest, messageType, seqNum,NumBadChecksums, NumDroppedMessages, object.objectType, object.versionNumber, object.length, object.width, object.centerX, object.centerY, object.orientation);
     checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
     sprintf(jsonFieldItemEnd, "%d}~", checkSum);
     strcpy(jsonFieldItem, jsonFieldItemTemp);
@@ -114,8 +114,8 @@ void convertFieldItemToJSON(unsigned char jsonFieldItem[76], fieldItem object, u
 }
 
 void convertSensorMsgToJson(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
     sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"C\":", source, dest, messageType, seqNum);
     checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
@@ -125,8 +125,8 @@ void convertSensorMsgToJson(unsigned char jsonFieldItem[76], unsigned char sourc
 }
 
 void convertSensorMsgToJsonWithData(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
     //if true, make the bad sequence number increment twice
     sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d,%d],\"C\":", source, dest, messageType, seqNum, NumBadChecksums, NumDroppedMessages);
@@ -148,10 +148,11 @@ void commSendMsgToSendQueue(unsigned char testString[RECEIVE_BUFFER_SIZE]) {
     //BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     int i;
     //unsigned char testString[76];
-    //    fieldItem item;
-    //    constructFieldItem(&item, 'o', (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
-    //    convertSensorMsgToJson(testString, 's', 'f', 'm', (unsigned char)SeqNum);
-    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char) SeqNum);
+    fieldItem item;
+    constructFieldItem(&item, (unsigned char)2, (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
+    convertFieldItemToJSON(testString, item, 's', 'f', 'm', SeqNum);
+//    convertSensorMsgToJson(testString, 'f', 's', 'm', (unsigned char)SeqNum);
+//    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char) SeqNum);
     SeqNum++;
     if (SeqNum >= 64) {
         SeqNum = 0;
@@ -214,146 +215,145 @@ unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
 void COMMUNICATION_Tasks(void) {
     dbgOutputLoc(DBG_LOC_COMM_ENTER);
 
-    unsigned char receivemsg[COMM_QUEUE_BUFFER_SIZE];
-    //            unsigned char receiveFromWifiBuffer[RECEIVE_BUFFER_SIZE];
-    //            unsigned int receiveFromWifiBufferIdx = 0;
-    int PreviousSequenceNumber = 0;
+	unsigned char receivemsg[COMM_QUEUE_BUFFER_SIZE];
+	//            unsigned char receiveFromWifiBuffer[RECEIVE_BUFFER_SIZE];
+	//            unsigned int receiveFromWifiBufferIdx = 0;
+	int PreviousSequenceNumber = 0;
 
-    dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE);
-    dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE_NEW_VAL);
-    while (1) {
-        //Block until a message is received
-        dbgOutputLoc(DBG_LOC_COMM_BEFORE_RECEIVE);
-        BaseType_t receiveCheck = xQueueReceive(commQueue, receivemsg, portMAX_DELAY);
-        dbgOutputLoc(DBG_LOC_COMM_AFTER_RECEIVE);
+	dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE);
+	dbgOutputLoc(DBG_LOC_COMM_BEFORE_WHILE_NEW_VAL);
+	while (1) {
+		//Block until a message is received
+		dbgOutputLoc(DBG_LOC_COMM_BEFORE_RECEIVE);
+		BaseType_t receiveCheck = xQueueReceive(commQueue, receivemsg, portMAX_DELAY);
+		dbgOutputLoc(DBG_LOC_COMM_AFTER_RECEIVE);
 
-        //Handle the message
-        if (receiveCheck == pdTRUE) {
-            //Get the message ID
-            int msgId = (receivemsg[COMM_SOURCE_ID_IDX] & COMM_SOURCE_ID_MASK) >> COMM_SOURCE_ID_OFFSET;
-            //Handle a specific message
-            if (msgId == COMM_MAPPING_ID) {
-                //Handle a message from the mapping thread
-                dbgOutputLoc(DBG_LOC_COMM_IF_MAPPING);
-            } else if (msgId == COMM_UART_ID) {
-                //Handle input from the WiFly
-                dbgOutputLoc(DBG_LOC_COMM_IF_UART);
-                Nop();
-                if (UNIT_TESTING) {
-                    commQueueReceiveTest(receivemsg);
-                } else {
-                    //Parse that stuff
-                    fieldItem testFieldItem;
-                    unsigned char Source;
-                    unsigned char Dest;
-                    unsigned char *MessageType;
-                    unsigned char SequenceNumber;
-                    int Checksum;
-//                    Nop();
-                    if (jsonGetSource(receivemsg, &Source)) {
-                        //error
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 1);
+		//Handle the message
+		if (receiveCheck == pdTRUE) {
+			//Convert the message into integer format
+			//Get the message ID
+			int msgId = (receivemsg[COMM_SOURCE_ID_IDX] & COMM_SOURCE_ID_MASK) >> COMM_SOURCE_ID_OFFSET;
+			//Handle a specific message
+			if (msgId == COMM_MAPPING_ID) {
+				//Handle a message from the mapping thread
+				dbgOutputLoc(DBG_LOC_COMM_IF_MAPPING);
+			} else if (msgId == COMM_UART_ID) {
+				//Handle input from the WiFly
+				dbgOutputLoc(DBG_LOC_COMM_IF_UART);
+				if (UNIT_TESTING) {
+					commQueueReceiveTest(receivemsg);
+				} else {
+					//Parse that stuff
+					fieldItem testFieldItem;
+					unsigned char Source;
+					unsigned char Dest;
+					unsigned char MessageType[4];
+					unsigned char SequenceNumber;
+					int Checksum;
+					
+					if (jsonGetChecksum(receivemsg, &Checksum)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 5);
+					}
+					
+					//Check Checksum
+					unsigned char ChecksumStr[6];
+					if (jsonGetChecksumString(receivemsg, ChecksumStr)) {
+						//bad
+					} else {
+						int ChecksumStrChecksum = calcSimpleChecksum(ChecksumStr);// ChecksumStr[0] + ChecksumStr[1] + ChecksumStr[2] + ChecksumStr[3];
+						int ChecksumDiff = calcSimpleChecksum(receivemsg) - ChecksumStrChecksum;
+						if (ChecksumDiff == Checksum) {
+							//Checksums check out
+						} else {
+							//bad
+							NumBadChecksums++;
+							dbgOutputVal(NumBadChecksums);
+							dbgOutputLoc(DBG_LOC_BAD_ERROR - 7);
+						}
+					}
+					
+					//Check Sequence Number
+					if (SequenceNumber == PreviousSequenceNumber + 1) {
+						//This is good.
+					} else if (PreviousSequenceNumber == 63 && SequenceNumber == 0) {
+						//This is also good.
+					} else {
+						//This is bad
+						NumDroppedMessages++;
+						dbgOutputVal(NumDroppedMessages);
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 6);
+					}
+					PreviousSequenceNumber = SequenceNumber;
+					
+					if (jsonGetSource(receivemsg, &Source)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 1);
+					}else if (Source == 'v'){
+						//Handle stuff from my test client
+						dbgOutputVal(Source);
+						int speed;
 //                        Nop();
-                    }else if (Source == 'v'){
-                        //Handle stuff from my test client
-                        dbgOutputVal(Source);
-                        int speed;
-//                        Nop();
-                        //I store the speed in the checksum field because, at the time of writing, there is no working function to read from the data field
-                        if(jsonGetChecksum(receivemsg, &speed) == 0){
-                            //Send speed to Nav queue
-                            char navMsg[NAV_QUEUE_BUFFER_SIZE];
-                            navMsg[0] = speed & 0xff;
-                            navMsg[1] = NAV_MOTOR_SPEED_ID;
-                            navMsg[NAV_SOURCE_ID_IDX] = NAV_OTHER_ID;
-                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
-                            dbgOutputVal(navMsg[0]);
-                            dbgOutputVal(navMsg[1]);
-                            dbgOutputVal(navMsg[2]);
-                            dbgOutputVal(navMsg[3]);
-                            navSendMsg(navMsg);
-                        }
-                    }
-                    dbgOutputVal(Source);
-//                    Nop();
-                    if (jsonGetDestination(receivemsg, &Dest)) {
-                        //error
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 2);
-                    }
-                    //                            dbgOutputVal(Dest);
-                    if (jsonGetMessageType(receivemsg, MessageType)) {
-                        //error
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 3);
-                    }
-                    if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
-                        //error
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
-                    }
-                    //Check Sequence Number
-                    if (SequenceNumber == PreviousSequenceNumber + 1) {
-                        //This is good.
-                    } else if (PreviousSequenceNumber == 63 && SequenceNumber == 0) {
-                        //This is also good.
-                    } else {
-                        //This is bad
-                        NumDroppedMessages++;
-//                        dbgOutputVal(NumDroppedMessages);
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 6);
-                    }
-                    PreviousSequenceNumber = SequenceNumber;
-                    if (jsonGetChecksum(receivemsg, &Checksum)) {
-                        //error
-                        dbgOutputLoc(DBG_LOC_BAD_ERROR - 5);
-                    }
-//                    dbgOutputVal(Checksum);
-                    //Check Checksum
-                    unsigned char ChecksumStr[6];
-                    if (jsonGetChecksumString(receivemsg, ChecksumStr)) {
-                        //bad
-                    } else {
-                        int ChecksumStrChecksum = calcSimpleChecksum(ChecksumStr);//ChecksumStr[0] + ChecksumStr[1] + ChecksumStr[2] + ChecksumStr[3];
-                        int ChecksumDiff = calcSimpleChecksum(receivemsg) - ChecksumStrChecksum;
-                        if (ChecksumDiff == Checksum) {
-                            //Checksums check out
-                        } else {
-                            //bad
-                            NumBadChecksums++;
-//                            dbgOutputVal(NumBadChecksums);
-                            dbgOutputLoc(DBG_LOC_BAD_ERROR - 7);
-                        }
-                    }
-
-                    //                            if (jsonGetFieldItem(receivemsg, &testFieldItem)){
-                    //                                //error
-                    //                                dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
-                    //                            }
-                }
-            } else if (msgId == COMM_SEND_ID) {
-                //Handle sending
-                dbgOutputLoc(DBG_LOC_COMM_IF_SEND);
-//                unsigned char bufferToReadFrom[RECEIVE_BUFFER_SIZE];
-//                commSendMsgToSendQueue(bufferToReadFrom);
-            } else if (msgId == COMM_OTHER_ID) {
-                //Handle other stuff
-                if (receivemsg[1] == NAV_MOTOR_SPEED_ID){
-                    //Handle motor speed server testing
-                    char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
-                    sprintf(testServerMsg, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d],\"C\":%d)~", 's', 'v', 's', 0, (int) receivemsg[0], (int) receivemsg[0]);
-                    int j;
-                    for (j = 0; j < strlen(testServerMsg); j++) {
-                        xQueueSendToBack(sendQueue, &testServerMsg[j], portMAX_DELAY);
-                        PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
-                    }
-                }
-            }
-        }
-    }
+						//I store the speed in the checksum field because, at the time of writing, there is no working function to read from the data field
+						if(jsonGetChecksum(receivemsg, &speed) == 0){
+							//Send speed to Nav queue
+							char navMsg[NAV_QUEUE_BUFFER_SIZE];
+							navMsg[0] = speed & 0xff;
+							navMsg[1] = NAV_MOTOR_SPEED_ID;
+							navMsg[NAV_SOURCE_ID_IDX] = NAV_OTHER_ID;
+							navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+							dbgOutputVal(navMsg[0]);
+							dbgOutputVal(navMsg[1]);
+							dbgOutputVal(navMsg[2]);
+							dbgOutputVal(navMsg[3]);
+							navSendMsg(navMsg);
+						}
+					}
+					
+					if (jsonGetDestination(receivemsg, &Dest)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 2);
+					}
+					
+					if (jsonGetMessageType(receivemsg, MessageType)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 3);
+					}
+					if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
+					}
+					if (jsonGetFieldItem(receivemsg, &testFieldItem)){
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
+					}
+				}
+			} else if (msgId == COMM_SEND_ID) {
+				//Handle sending
+				dbgOutputLoc(DBG_LOC_COMM_IF_SEND);
+                unsigned char bufferToReadFrom[RECEIVE_BUFFER_SIZE];
+                commSendMsgToSendQueue(bufferToReadFrom);
+			} else if (msgId == COMM_OTHER_ID) {
+				//Handle other stuff
+				if (receivemsg[1] == NAV_MOTOR_SPEED_ID){
+					//Handle motor speed server testing
+					char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+					sprintf(testServerMsg, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d],\"C\":%d)~", 's', 'v', 's', 0, (int) receivemsg[0], (int) receivemsg[0]);
+					int j;
+					for (j = 0; j < strlen(testServerMsg); j++) {
+						xQueueSendToBack(sendQueue, &testServerMsg[j], portMAX_DELAY);
+						PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
+					}
+				}
+			}
+		}
+	}
 }
 
 int calcSimpleChecksum(unsigned char* stringToCalculateFrom) {
     int checkSum = 0;
     int j = 0;
-    while (stringToCalculateFrom[j] != '~' && stringToCalculateFrom[j] != '}' && stringToCalculateFrom != '\0') {
+    while (stringToCalculateFrom[j] != '~' && stringToCalculateFrom[j] != '}' && stringToCalculateFrom[j] != '\0') {
         j++;
         if (j > 254) {
             break;

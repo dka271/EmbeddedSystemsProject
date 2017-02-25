@@ -39,6 +39,7 @@ extern "C" {
 #define KEY_MESSAGE_TYPE	((unsigned char) 'M')
 #define KEY_SEQUENCE_NUMBER	((unsigned char) 'N')
 #define KEY_DATA			((unsigned char) 'D')
+#define KEY_FIELD_ITEM		((unsigned char) 'F')
 #define KEY_CHECKSUM		((unsigned char) 'C')
 #define ELEMENT_DELIM		((unsigned char) ':')
 

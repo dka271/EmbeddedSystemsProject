@@ -49,6 +49,8 @@ int jsonGetSource(unsigned char *buffer, unsigned char *source){
 	}
 	if (parseCharacter(buffer, index, source)){
 		//There was a parse error
+        
+        
 //        dbgOutputLoc(85);
 		return 1;
 	}
@@ -75,8 +77,8 @@ int jsonGetMessageType(unsigned char *buffer, unsigned char *messageType){
 		//The key was not found
 		return -1;
 	}
-	//if (parseString(buffer, index, messageType)){
 	if (parseCharacter(buffer, index, messageType)){
+//	if (parseCharacter(buffer, index, messageType)){
 		//There was a parse error
 		return 1;
 	}
@@ -129,7 +131,7 @@ int jsonGetChecksumString(unsigned char *buffer, unsigned char *checksum){
 }
 
 int jsonGetFieldItem(unsigned char *buffer, fieldItem *item){
-    int index = jsonFindElementFromKey(buffer, KEY_DATA);
+    int index = jsonFindElementFromKey(buffer, KEY_FIELD_ITEM);
 	if (index == -1){
 		//The key was not found
 		return -1;
@@ -148,29 +150,30 @@ int parseCharacter(char* bufferToReadFrom, int index, unsigned char *info) {
         return 1;
     }
     index += 2;
-    int length = 1;
     
     if (bufferToReadFrom[index+1] != '"') {
         return 1;
     }
     
     info = &bufferToReadFrom[index];
-//    sprintf(info, "%s", bufferToReadFrom[index]);
-//    info[0] = bufferToReadFrom[index];
-    dbgOutputVal('X');
-    dbgOutputVal(*info);
+//    dbgOutputVal(*info);
     return 0;
 }
 
 int parseString(char* bufferToReadFrom,int index, unsigned char* info) {
+    
     if (bufferToReadFrom[index] != ':' || bufferToReadFrom[index+1] != '"') {
         return 1;
     }
-    index += 2;
+//    index += 2;
     int length = 0;
-    
+    unsigned char tempString[4];
+    int j;
+    for(j=0; j < 4; j++) {
+        tempString[j] = '\0';
+    }
     while(1) {
-        if (bufferToReadFrom[index+length] == '"') {
+        if (bufferToReadFrom[index+length+2] == '"') {
             break;
         } else {
             length++;
@@ -184,9 +187,10 @@ int parseString(char* bufferToReadFrom,int index, unsigned char* info) {
     int i=0;
     for (i=0; i < length; i++) {
 //        strcat(info, bufferToReadFrom[index+i]);
-        info[i] = bufferToReadFrom[index+i];
+        tempString[i] = bufferToReadFrom[index+i+2];
 //        dbgOutputVal(info[i]);
     }
+    strcpy(info, tempString);
     return 0;
 }
 
@@ -233,7 +237,6 @@ int parseCheckSum(char* bufferToReadFrom, int index, unsigned char numInStringFo
         return 1;
     }
     
-//    int inc = 1;
     int length = 0;
     
     while(1) {
@@ -247,22 +250,13 @@ int parseCheckSum(char* bufferToReadFrom, int index, unsigned char numInStringFo
             return 1;
         }
     }
-//    unsigned char numInStringForm[length+1];
     
     int i=0;
     for (i=0; i < length; i++) {
-//        strcat(info, bufferToReadFrom[index+i]);
         numInStringForm[i] = bufferToReadFrom[index+i+1];
-//        dbgOutputVal(numInStringForm[i]);
     }
     numInStringForm[i] = '\0';
-    
-//    *info = atoi(numInStringForm);
-//    dbgOutputVal(220);
-//    dbgOutputVal(info[0] & 0x000000ff);
-//    dbgOutputVal((info[0] & 0x0000ff00) >> 8);
-//    dbgOutputVal((info[0] & 0x00ff0000) >> 16);
-//    dbgOutputVal((info[0] & 0xff000000) >> 24);
+
     return 0;
 }
 
@@ -303,10 +297,14 @@ int parseUInt8(unsigned char* bufferToReadFrom, int index, unsigned char* info) 
 }
 
 int readNumInStringForm(char* bufferToReadFrom, int* index) {
-    unsigned char* numInStringForm;
-    int length = 1;
+    unsigned char numInStringForm[6];
+    int j;
+    for (j=0; j < 6; j++) {
+        numInStringForm[j] = '\0';
+    }
+    int length = 0;
     while(1) {
-        if (bufferToReadFrom[*index+length] == ',') {
+        if (bufferToReadFrom[*index+length] == ',' || bufferToReadFrom[*index+length] == ']') {
             break;
         } else {
             length++;
@@ -325,7 +323,7 @@ int readNumInStringForm(char* bufferToReadFrom, int* index) {
     
     *index += length;
     
-     return atoi(numInStringForm);
+    return atoi(numInStringForm);
 }
 
 int parseFieldItem(char* bufferToReadFrom,int index, fieldItem* info) {
@@ -334,56 +332,51 @@ int parseFieldItem(char* bufferToReadFrom,int index, fieldItem* info) {
         return 1;
     }
     index += 2;
-    fieldItem tempFieldItem;
+//    fieldItem tempFieldItem;
     
-    tempFieldItem.objectType = readNumInStringForm(bufferToReadFrom, &index);
+    info->objectType = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.versionNumber = readNumInStringForm(bufferToReadFrom, &index);
+    info->versionNumber = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.length = readNumInStringForm(bufferToReadFrom, &index);
+    info->length = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.width = readNumInStringForm(bufferToReadFrom, &index);
+    info->width = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.centerX = readNumInStringForm(bufferToReadFrom, &index);
+    info->centerX = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.centerY = readNumInStringForm(bufferToReadFrom, &index);
+    info->centerY = readNumInStringForm(bufferToReadFrom, &index);
     if (bufferToReadFrom[index] != ',') {
         return 1;
     } else {
         index++;
     }
-    tempFieldItem.orientation = readNumInStringForm(bufferToReadFrom, &index);
+    info->orientation = readNumInStringForm(bufferToReadFrom, &index);
     
-    if ((tempFieldItem.objectType < 0) || (tempFieldItem.versionNumber < 0) || (tempFieldItem.length < 0) || (tempFieldItem.width < 0) || (tempFieldItem.centerX < 0) || (tempFieldItem.centerY < 0) || (tempFieldItem.orientation < 0)) {
+    if ((info->objectType < 0) || (info->versionNumber < 0) || (info->length < 0) || (info->width < 0) || (info->centerX < 0) || (info->centerY < 0) || (info->orientation < 0)) {
         return 1;
     }
+    return 0;
 }
-
-
-
-
-
-
 
 /* *****************************************************************************
  End of File
