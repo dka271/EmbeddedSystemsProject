@@ -159,11 +159,11 @@ void constructFieldItem(fieldItem *object, unsigned char objectType, unsigned ch
     object->orientation = orientation;
 }
 
-void convertFieldItemToJSON(unsigned char jsonFieldItem[76], fieldItem object, unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+void convertFieldItemToJSON(unsigned char jsonFieldItem[208], fieldItem object, unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
-    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[\"%c\",%d,%d,%d,%d,%d,%d],\"C\":", source, dest, messageType, seqNum, object.objectType, object.versionNumber, object.length, object.width, object.centerX, object.centerY, object.orientation);
+    sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d,%d],\"F\":[%d,%d,%d,%d,%d,%d,%d],\"C\":", source, dest, messageType, seqNum,NumBadChecksums, NumDroppedMessages, object.objectType, object.versionNumber, object.length, object.width, object.centerX, object.centerY, object.orientation);
     checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
     sprintf(jsonFieldItemEnd, "%d}~", checkSum);
     strcpy(jsonFieldItem, jsonFieldItemTemp);
@@ -171,8 +171,8 @@ void convertFieldItemToJSON(unsigned char jsonFieldItem[76], fieldItem object, u
 }
 
 void convertSensorMsgToJson(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
     sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"C\":", source, dest, messageType, seqNum);
     checkSum = calculateJsonStringCheckSum(jsonFieldItemTemp);
@@ -182,8 +182,8 @@ void convertSensorMsgToJson(unsigned char jsonFieldItem[76], unsigned char sourc
 }
 
 void convertSensorMsgToJsonWithData(unsigned char jsonFieldItem[76], unsigned char source, unsigned char dest, unsigned char messageType, unsigned char seqNum) {
-    unsigned char jsonFieldItemTemp[70];
-    unsigned char jsonFieldItemEnd[6];
+    unsigned char jsonFieldItemTemp[200];
+    unsigned char jsonFieldItemEnd[8];
     int checkSum;
     //if true, make the bad sequence number increment twice
     sprintf(jsonFieldItemTemp, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d,%d],\"C\":", source, dest, messageType, seqNum, NumBadChecksums, NumDroppedMessages);
@@ -205,10 +205,11 @@ void commSendMsgToSendQueue(unsigned char testString[RECEIVE_BUFFER_SIZE]) {
     //BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     int i;
     //unsigned char testString[76];
-    //    fieldItem item;
-    //    constructFieldItem(&item, 'o', (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
-    //    convertSensorMsgToJson(testString, 's', 'f', 'm', (unsigned char)SeqNum);
-    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char) SeqNum);
+    fieldItem item;
+    constructFieldItem(&item, (unsigned char)2, (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
+    convertFieldItemToJSON(testString, item, 's', 'f', 'm', SeqNum);
+//    convertSensorMsgToJson(testString, 'f', 's', 'm', (unsigned char)SeqNum);
+//    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char) SeqNum);
     SeqNum++;
     if (SeqNum >= 64) {
         SeqNum = 0;
@@ -304,8 +305,6 @@ void COMMUNICATION_Tasks(void) {
                 //Handle the message
                 if (receiveCheck == pdTRUE) {
                     //Convert the message into integer format
-                    unsigned int receivemsgint0 = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
-                    unsigned int receivemsgint1 = receivemsg[4] | (receivemsg[5] << 8) | (receivemsg[6] << 16) | (receivemsg[7] << 24);
                     //Get the message ID
                     int msgId = (receivemsg[COMM_SOURCE_ID_IDX] & COMM_SOURCE_ID_MASK) >> COMM_SOURCE_ID_OFFSET;
                     //Handle a specific message
@@ -322,28 +321,32 @@ void COMMUNICATION_Tasks(void) {
                             fieldItem testFieldItem;
                             unsigned char Source;
                             unsigned char Dest;
-                            unsigned char *MessageType;
+                            unsigned char MessageType[4];
                             unsigned char SequenceNumber;
                             int Checksum;
-                            //                            Nop();
-                            if (jsonGetSource(receivemsg, &Source)) {
+                            
+                            if (jsonGetChecksum(receivemsg, &Checksum)) {
                                 //error
-                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 1);
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 5);
                             }
-                            //                            dbgOutputVal(Source);
-                            if (jsonGetDestination(receivemsg, &Dest)) {
-                                //error
-                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 2);
+                            
+                            //Check Checksum
+                            unsigned char ChecksumStr[6];
+                            if (jsonGetChecksumString(receivemsg, ChecksumStr)) {
+                                //bad
+                            } else {
+                                int ChecksumStrChecksum = calcSimpleChecksum(ChecksumStr);// ChecksumStr[0] + ChecksumStr[1] + ChecksumStr[2] + ChecksumStr[3];
+                                int ChecksumDiff = calcSimpleChecksum(receivemsg) - ChecksumStrChecksum;
+                                if (ChecksumDiff == Checksum) {
+                                    //Checksums check out
+                                } else {
+                                    //bad
+                                    NumBadChecksums++;
+                                    dbgOutputVal(NumBadChecksums);
+                                    dbgOutputLoc(DBG_LOC_BAD_ERROR - 7);
+                                }
                             }
-                            //                            dbgOutputVal(Dest);
-                            if (jsonGetMessageType(receivemsg, MessageType)) {
-                                //error
-                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 3);
-                            }
-                            if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
-                                //error
-                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
-                            }
+                            
                             //Check Sequence Number
                             if (SequenceNumber == PreviousSequenceNumber + 1) {
                                 //This is good.
@@ -356,31 +359,29 @@ void COMMUNICATION_Tasks(void) {
                                 dbgOutputLoc(DBG_LOC_BAD_ERROR - 6);
                             }
                             PreviousSequenceNumber = SequenceNumber;
-                            if (jsonGetChecksum(receivemsg, &Checksum)) {
+                            
+                            if (jsonGetSource(receivemsg, &Source)) {
                                 //error
-                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 5);
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 1);
                             }
-                            //Check Checksum
-                            unsigned char ChecksumStr[6];
-                            if (jsonGetChecksumString(receivemsg, ChecksumStr)) {
-                                //bad
-                            } else {
-                                int ChecksumStrChecksum = ChecksumStr[0] + ChecksumStr[1] + ChecksumStr[2] + ChecksumStr[3];
-                                int ChecksumDiff = calcSimpleChecksum(receivemsg) - ChecksumStrChecksum;
-                                if (ChecksumDiff == Checksum) {
-                                    //Checksums check out
-                                } else {
-                                    //bad
-                                    NumBadChecksums++;
-                                    dbgOutputVal(NumBadChecksums);
-                                    dbgOutputLoc(DBG_LOC_BAD_ERROR - 7);
-                                }
+                            
+                            if (jsonGetDestination(receivemsg, &Dest)) {
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 2);
                             }
-
-                            //                            if (jsonGetFieldItem(receivemsg, &testFieldItem)){
-                            //                                //error
-                            //                                dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
-                            //                            }
+                            
+                            if (jsonGetMessageType(receivemsg, MessageType)) {
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 3);
+                            }
+                            if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
+                            }
+                            if (jsonGetFieldItem(receivemsg, &testFieldItem)){
+                                //error
+                                dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
+                            }
                         }
                     } else if (msgId == COMM_SEND_ID) {
                         //Handle sending
@@ -408,7 +409,7 @@ void COMMUNICATION_Tasks(void) {
 int calcSimpleChecksum(unsigned char* stringToCalculateFrom) {
     int checkSum = 0;
     int j = 0;
-    while (stringToCalculateFrom[j] != '~' && stringToCalculateFrom[j] != '}') {
+    while (stringToCalculateFrom[j] != '~' && stringToCalculateFrom[j] != '}' && stringToCalculateFrom[j] != '\0') {
         j++;
         if (j > 254) {
             break;
