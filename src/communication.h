@@ -68,7 +68,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/msg/sys_msg.h"
 #include "debug.h"
 #include "motor.h"
-#include "jsmn.h"
+#include "navigation_public.h"
 #include "myjson.h"
 
 // DOM-IGNORE-BEGIN
@@ -115,15 +115,6 @@ typedef enum
 int parseReceiveBuffer();
 int calcSimpleChecksum(unsigned char* stringToCalculateFrom);
 
-//Copy pasted from JSMN example
-//Compares a string to a part of the JSON array pointed to by a token
-static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
-			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-		return 0;
-	}
-	return -1;
-}
 //--------------------------------------------------------------------------------------------
 //End My Functions
 //--------------------------------------------------------------------------------------------

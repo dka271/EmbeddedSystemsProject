@@ -39,6 +39,7 @@ extern "C" {
 #define COMM_UART_ID 0
 #define COMM_MAPPING_ID 1
 #define COMM_SEND_ID 2
+#define COMM_OTHER_ID 3
 
 #define SEND_QUEUE_BUFFER_SIZE 216 
 #define RECEIVE_BUFFER_SIZE 216 

@@ -841,8 +841,7 @@ build/milestone1/production/_ext/1555642536/system_interrupt.o:  \
 ../src/communication_public.h  \
  ../src/mapping_public.h  \
 ../src/communication.h  \
-../src/jsmn.h  \
- ../src/myjson.h  \
-../src/navigation.h  \
+../src/myjson.h  \
+ ../src/navigation.h  \
 ../src/mapping.h  \
- ../src/communication.h 
+../src/communication.h 

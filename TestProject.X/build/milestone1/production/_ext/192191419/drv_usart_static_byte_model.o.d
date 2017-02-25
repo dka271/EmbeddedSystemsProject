@@ -836,8 +836,7 @@ build/milestone1/production/_ext/192191419/drv_usart_static_byte_model.o:  \
 ../src/communication_public.h  \
  ../src/mapping_public.h  \
 ../src/communication.h  \
-../src/jsmn.h  \
- ../src/myjson.h  \
-../src/navigation.h  \
+../src/myjson.h  \
+ ../src/navigation.h  \
 ../src/mapping.h  \
- ../src/communication.h 
+../src/communication.h 

@@ -59,7 +59,7 @@ extern "C" {
 #define MOTOR_1_FORWARDS 0
 #define MOTOR_1_BACKWARDS 1
 
-
+#define NAV_MOTOR_SPEED_ID 0x3c
 
     // *****************************************************************************
     // *****************************************************************************
@@ -79,6 +79,18 @@ extern "C" {
     void Motor2SetDirection(int direction);
     void Motor1SetPWM(int pwm);
     void Motor2SetPWM(int pwm);
+    
+    
+
+//Given a value between 0 and 20, calculate the PWM
+//count is a number from 0 to 19
+//The duty cycle is (val*5)%
+int GetPWMFromValue(unsigned int val, unsigned int count);
+
+//Generate a PWM signal based on the error
+//Send a 0 - 20 value to the PWM
+int PID1(unsigned int setpoint, unsigned int actual);
+int PID2(unsigned int setpoint, unsigned int actual);
 
 
 

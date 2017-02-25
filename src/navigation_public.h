@@ -44,6 +44,7 @@ extern "C" {
 #define NAV_COLOR_SENSOR_3_ID_SENSOR 4
 #define NAV_MAPPING_ID_SENSOR 5
 #define NAV_PWM_TIMER_ID 6
+#define NAV_OTHER_ID 7
     
 #define NAV_QUEUE_BUFFER_SIZE 4
 #define NAV_CHECKSUM_IDX 3

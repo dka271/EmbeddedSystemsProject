@@ -68,6 +68,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/msg/sys_msg.h"
 #include "debug.h"
 #include "motor.h"
+#include "communication_public.h"
 #include "mapping_public.h"
 
 // DOM-IGNORE-BEGIN
@@ -175,16 +176,6 @@ typedef struct
 */
 
 void NAVIGATION_Initialize ( void );
-
-//Given a value between 0 and 20, calculate the PWM
-//count is a number from 0 to 19
-//The duty cycle is (val*5)%
-int GetPWMFromValue(unsigned int val, unsigned int count);
-
-//Generate a PWM signal based on the error
-//Send a 0 - 20 value to the PWM
-int PID1(unsigned int setpoint, unsigned int actual);
-int PID2(unsigned int setpoint, unsigned int actual);
 
 
 /*******************************************************************************

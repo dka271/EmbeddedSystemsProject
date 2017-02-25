@@ -46,75 +46,13 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
  *******************************************************************************/
 // DOM-IGNORE-END
 
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Included Files 
-// *****************************************************************************
-// *****************************************************************************
-
 #include "navigation.h"
 #include "navigation_public.h"
 #include "ms2test.h"
 
-// *****************************************************************************
-// *****************************************************************************
-// Section: Global Data Definitions
-// *****************************************************************************
-// *****************************************************************************
-
-// *****************************************************************************
-/* Application Data
-
-  Summary:
-    Holds application data
-
-  Description:
-    This structure holds the application's data.
-
-  Remarks:
-    This structure should be initialized by the APP_Initialize function.
-    
-    Application strings and buffers are be defined outside this structure.
-*/
-
 NAVIGATION_DATA navigationData;
 
 static QueueHandle_t navQueue;
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Callback Functions
-// *****************************************************************************
-// *****************************************************************************
-
-/* TODO:  Add any necessary callback functions.
-*/
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Local Functions
-// *****************************************************************************
-// *****************************************************************************
-
-
-/* TODO:  Add any necessary local functions.
-*/
-
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Initialization and State Machine Functions
-// *****************************************************************************
-// *****************************************************************************
-
-/*******************************************************************************
-  Function:
-    void NAVIGATION_Initialize ( void )
-
-  Remarks:
-    See prototype in navigation.h.
- */
 
 void NAVIGATION_Initialize ( void )
 {
@@ -126,11 +64,6 @@ void NAVIGATION_Initialize ( void )
     if(navQueue == 0){
         dbgPauseAll();
     }
-
-    
-    /* TODO: Initialize your application's state machine and other
-     * parameters.
-     */
 }
 
 void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
@@ -152,99 +85,6 @@ unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
     return sum;
 }
 
-int GetPWMFromValue(unsigned int val, unsigned int count){
-    if (val > 25){
-        val = 25;
-    }
-    int pwm = (count % 25) < val;
-    return pwm;
-}
-
-
-int Kp = 0;//Test and calibrate this number//1
-int Ti = 6;//Try to eliminate past errors in Ti*dt
-int Td = 8;//Try to predict errors Td*dt in the future
-//Set gain parameters
-//int Ki = (int) (Kp / Ti);
-//int Kd = Kp * Td;
-int Ki = 0;//3
-int Kd = 0;//80
-int dt = 4;//4 ms
-int PIDOffsetDiv = 13;//9
-int PIDDiv = 1;//1000
-int errorDiv = 1;
-int PID1_PreviousError = 0;
-int PID1_I = 0;
-int PID1_Out = 0;
-int PID1(unsigned int setpoint, unsigned int actual){
-    int PIDOffset = (int) (setpoint/PIDOffsetDiv);
-    int error = (int) ((setpoint - actual));
-    /*
-    PID1_I += error*dt;
-    
-    //Limit the Integral component
-    if (PID1_I > 1000000){
-        PID1_I = 1000000;
-    }else if (PID1_I < -1000000){
-        PID1_I = -1000000;
-    }
-    
-    int PID1_D = (int) ((error - PID1_PreviousError)/dt);
-    int out = (Kp*error*dt) + (Kd*PID1_D) + (Ki*PID1_I);
-    PID1_PreviousError = error;
-    //Limit the output to [-10,10]
-    out = (int) out / PIDDiv;
-    //out += PIDOffset;
-    */
-    if (error > 0){
-        PID1_Out++;
-    }else{
-        PID1_Out--;
-    }
-    if (PID1_Out > 25){
-        PID1_Out = 25;
-    }else if (PID1_Out < 0){
-        PID1_Out = 0;
-    }
-    return PID1_Out;
-}
-
-int PID2_PreviousError = 0;
-int PID2_I = 0;
-int PID2_Out = 0;
-int PID2(unsigned int setpoint, unsigned int actual){
-    int PIDOffset = (int) (setpoint/PIDOffsetDiv);
-    int error = (int) ((setpoint - actual));
-    /*
-    PID2_I += error*dt;
-    
-    //Limit the Integral component
-    if (PID2_I > 1000000){
-        PID2_I = 1000000;
-    }else if (PID2_I < -1000000){
-        PID2_I = -1000000;
-    }
-    
-    int PID2_D = (int) ((error - PID2_PreviousError)/dt);
-    int out = (Kp*error*dt) + (Kd*PID2_D) + (Ki*PID2_I);
-    PID2_PreviousError = error;
-    //Limit the output to [0,20]
-    out = (int) out / PIDDiv;
-    */
-    //out += PIDOffset;
-    if (error > 0){
-        PID2_Out++;
-    }else{
-        PID2_Out--;
-    }
-    if (PID2_Out > 25){
-        PID2_Out = 25;
-    }else if (PID2_Out < 0){
-        PID2_Out = 0;
-    }
-    return PID2_Out;
-}
-
 
 /******************************************************************************
   Function:
@@ -257,138 +97,138 @@ int PID2(unsigned int setpoint, unsigned int actual){
 void NAVIGATION_Tasks ( void )
 {
     dbgOutputLoc(DBG_LOC_NAV_ENTER);
+    
+    //Variables to be used for testing
+    int Is_Testing_Speed = 0;
+    
+    //Variables to be used for navigation
+    unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
+    unsigned int previousValue1 = 0;
+    unsigned int speed1;
+    unsigned int previousValue2 = 0;
+    unsigned int speed2;
+    unsigned int pwmCount = 0;
+    unsigned int desiredSpeed = 0;
+    int m1PID;
+    int m2PID;
+    Motor1SetPWM(0);
+    Motor2SetPWM(0);
+    Motor1SetDirection(MOTOR_1_FORWARDS);
+    Motor2SetDirection(MOTOR_2_FORWARDS);
 
-    /* Check the application's current state. */
-    switch ( navigationData.state )
-    {
-        /* Application's initial state. */
-        case NAVIGATION_STATE_INIT:
-        {
-            bool appInitialized = true;
-       
-        
-            if (appInitialized)
-            {
-            
-                navigationData.state = NAVIGATION_STATE_SERVICE_TASKS;
-            }
-            break;
-        }
+    dbgOutputLoc(DBG_LOC_NAV_BEFORE_WHILE);
+    while(1){
+        //Block until a message is received
+        dbgOutputLoc(DBG_LOC_NAV_BEFORE_RECEIVE);
+        BaseType_t receiveCheck = xQueueReceive(navQueue, receivemsg, portMAX_DELAY);
+        dbgOutputLoc(DBG_LOC_NAV_AFTER_RECEIVE);
 
-        case NAVIGATION_STATE_SERVICE_TASKS:
-        {
-            unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
-            unsigned int previousValue1 = 0;
-            unsigned int speed1;
-            unsigned int previousValue2 = 0;
-            unsigned int speed2;
-            unsigned int pwmCount = 0;
-            unsigned int desiredSpeed = 50;
-            int m1PID;
-            int m2PID;
-            //Motor1SetPWM(1);
-            //Motor2SetPWM(1);
-            Motor1SetDirection(MOTOR_1_FORWARDS);
-            Motor2SetDirection(MOTOR_2_FORWARDS);
-            
-            dbgOutputLoc(DBG_LOC_NAV_BEFORE_WHILE);
-            while(1){
-                //Block until a message is received
-                dbgOutputLoc(DBG_LOC_NAV_BEFORE_RECEIVE);
-                BaseType_t receiveCheck = xQueueReceive(navQueue, receivemsg, portMAX_DELAY);
-                dbgOutputLoc(DBG_LOC_NAV_AFTER_RECEIVE);
-                
-                //Handle the message
-                if(receiveCheck == pdTRUE){
-                    //Convert the message into integer format
-                    unsigned int receivemsgint = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
-                    //Get the message ID
-                    int msgId = (receivemsg[NAV_SOURCE_ID_IDX] & NAV_SOURCE_ID_MASK) >> NAV_SOURCE_ID_OFFSET;
-                    //Handle a specific message
-                    if (msgId == NAV_TIMER_COUNTER_3_ID_SENSOR){
-                        //Motor 2 Encoder Message Handler
-                        //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                        //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                        //dbgOutputVal(receivemsgint & 0x000000ff);
-                        speed2 = (receivemsgint & 0x0000ffff) - previousValue2;
-                        //dbgUARTVal(speed2);
-                        previousValue2 = receivemsgint & 0x0000ffff;
-                        
-                        //Handle PWM stuff
-                        m2PID = PID2(desiredSpeed, speed2);
-                    }else if (msgId == NAV_TIMER_COUNTER_5_ID_SENSOR){
-                        //Motor 2 Encoder Message Handler
-                        //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                        //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                        //dbgOutputVal(receivemsgint & 0x000000ff);
-                        speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
+        //Handle the message
+        if(receiveCheck == pdTRUE){
+            //Convert the message into integer format
+            unsigned int receivemsgint = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
+            //Get the message ID
+            int msgId = (receivemsg[NAV_SOURCE_ID_IDX] & NAV_SOURCE_ID_MASK) >> NAV_SOURCE_ID_OFFSET;
+            //Handle a specific message
+            if (msgId == NAV_TIMER_COUNTER_3_ID_SENSOR){
+                //Motor 2 Encoder Message Handler
+                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
+                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
+                //dbgOutputVal(receivemsgint & 0x000000ff);
+                speed2 = (receivemsgint & 0x0000ffff) - previousValue2;
+                //dbgUARTVal(speed2);
+                previousValue2 = receivemsgint & 0x0000ffff;
+
+                //Handle PWM stuff
+                m2PID = PID2(desiredSpeed, speed2);
+            }else if (msgId == NAV_TIMER_COUNTER_5_ID_SENSOR){
+                //Motor 2 Encoder Message Handler
+                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
+                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
+                //dbgOutputVal(receivemsgint & 0x000000ff);
+                speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
 //                        dbgUARTVal(speed1);
 //                        dbgOutputVal(speed1);
-                        previousValue1 = receivemsgint & 0x0000ffff;
-                        
-                        //Handle PWM stuff
-                        m1PID = PID1(desiredSpeed, speed1);
-                        
-                        if (UNIT_TESTING){
-                            encoderSpeedTest(speed1);
-                        }
-                    }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
-                        //Handle stuff from color sensor 1
-                    }else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR){
-                        //Handle stuff from color sensor 2
-                    }else if (msgId == NAV_COLOR_SENSOR_3_ID_SENSOR){
-                        //Handle stuff from color sensor 3
-                        if (UNIT_TESTING){
-                            navQueueReceiveTest(receivemsg);
-                        }
-                    }else if (msgId == NAV_MAPPING_ID_SENSOR){
-                        //Handle stuff from the mapping queue
-                        //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                        //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                        //dbgOutputVal(receivemsgint & 0x000000ff);
-                        
-                        unsigned char msg[MAP_QUEUE_BUFFER_SIZE];
-                        msg[0] = 0;
-                        msg[1] = 0x11;
-                        msg[2] = 0x22;
-                        msg[3] = 0x33;
-                        msg[4] = 0x44;
-                        msg[5] = 0x55;
-                        msg[6] = 0x66;
-                        msg[7] = 0x77;
-                        msg[8] = 0x88;
-                        msg[9] = 0x99;
-                        msg[10] = 0xaa;
-                        msg[11] = 0xbb;
-                        msg[12] = 0xcc;
-                        msg[MAP_SOURCE_ID_IDX] = (MAP_NAVIGATION_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
-                        msg[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg);
-                        mapSendMsg(msg);
-                    }else if (msgId == NAV_PWM_TIMER_ID){
-                        //int ticksTarget = TEST_SPEED_TICKS;
-                        Motor1SetPWM(GetPWMFromValue(m1PID, pwmCount));
-                        Motor2SetPWM(GetPWMFromValue(m2PID, pwmCount));
+                previousValue1 = receivemsgint & 0x0000ffff;
+
+                //Handle PWM stuff
+                m1PID = PID1(desiredSpeed, speed1);
+                
+                //Change the desired speed for testing, comment this out when done
+//                desiredSpeed++;
+//                if (desiredSpeed > 90){
+//                    desiredSpeed = 0;
+//                }
+
+                if (UNIT_TESTING){
+                    encoderSpeedTest(speed1);
+                }
+                if (Is_Testing_Speed){
+                    //Handle server testing of the speed
+                    char commMsg[COMM_QUEUE_BUFFER_SIZE];
+                    commMsg[0] = speed1 & 0xff;
+                    commMsg[1] = NAV_MOTOR_SPEED_ID;
+                    commMsg[COMM_SOURCE_ID_IDX] = COMM_OTHER_ID;
+                    commMsg[COMM_CHECKSUM_IDX] = commCalculateChecksum(commMsg);
+                    commSendMsg(commMsg);
+                }
+            }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
+                //Handle stuff from color sensor 1
+            }else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR){
+                //Handle stuff from color sensor 2
+            }else if (msgId == NAV_COLOR_SENSOR_3_ID_SENSOR){
+                //Handle stuff from color sensor 3
+                if (UNIT_TESTING){
+                    navQueueReceiveTest(receivemsg);
+                }
+            }else if (msgId == NAV_MAPPING_ID_SENSOR){
+                //Handle stuff from the mapping queue
+                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
+                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
+                //dbgOutputVal(receivemsgint & 0x000000ff);
+
+                unsigned char msg[MAP_QUEUE_BUFFER_SIZE];
+                msg[0] = 0;
+                msg[1] = 0x11;
+                msg[2] = 0x22;
+                msg[3] = 0x33;
+                msg[4] = 0x44;
+                msg[5] = 0x55;
+                msg[6] = 0x66;
+                msg[7] = 0x77;
+                msg[8] = 0x88;
+                msg[9] = 0x99;
+                msg[10] = 0xaa;
+                msg[11] = 0xbb;
+                msg[12] = 0xcc;
+                msg[MAP_SOURCE_ID_IDX] = (MAP_NAVIGATION_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
+                msg[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg);
+                mapSendMsg(msg);
+            }else if (msgId == NAV_PWM_TIMER_ID){
+                //Handle PWM timer messages
+                //int ticksTarget = TEST_SPEED_TICKS;
+                Motor1SetPWM(GetPWMFromValue(m1PID, pwmCount));
+                Motor2SetPWM(GetPWMFromValue(m2PID, pwmCount));
 //                        dbgOutputVal(m1PID);
-                        //dbgOutputVal(m2PID);
-                        pwmCount++;
-                        if (pwmCount >= 25){
-                            pwmCount = 0;
-                        }
+                //dbgOutputVal(m2PID);
+                pwmCount++;
+                if (pwmCount >= 25){
+                    pwmCount = 0;
+                }
+            }else if (msgId == NAV_OTHER_ID){
+                //Handle a message from another source
+//                Nop();
+                if (receivemsg[1] == NAV_MOTOR_SPEED_ID){
+                    //Got speed from the test server
+                    desiredSpeed = (int) receivemsg[0];
+                    dbgOutputVal(desiredSpeed);
+                    if (desiredSpeed == 0){
+                        Is_Testing_Speed = 0;
+                    }else{
+                        Is_Testing_Speed = 1;
                     }
                 }
             }
-        
-            break;
-        }
-
-        /* TODO: implement your application state machine.*/
-        
-
-        /* The default state should never be executed. */
-        default:
-        {
-            /* TODO: Handle error in application's state machine. */
-            break;
         }
     }
 }

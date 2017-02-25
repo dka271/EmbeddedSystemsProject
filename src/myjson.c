@@ -110,7 +110,7 @@ int jsonGetChecksum(unsigned char *buffer, unsigned int *checksum){
 		//There was a parse error
 		return 1;
 	}
-    dbgOutputVal(*checksum);
+//    dbgOutputVal(*checksum);
 	return 0;
 }
 
@@ -124,7 +124,7 @@ int jsonGetChecksumString(unsigned char *buffer, unsigned char *checksum){
 		//There was a parse error
 		return 1;
 	}
-    dbgOutputVal(*checksum);
+//    dbgOutputVal(*checksum);
 	return 0;
 }
 
@@ -155,6 +155,9 @@ int parseCharacter(char* bufferToReadFrom, int index, unsigned char *info) {
     }
     
     info = &bufferToReadFrom[index];
+//    sprintf(info, "%s", bufferToReadFrom[index]);
+//    info[0] = bufferToReadFrom[index];
+    dbgOutputVal('X');
     dbgOutputVal(*info);
     return 0;
 }
@@ -182,7 +185,7 @@ int parseString(char* bufferToReadFrom,int index, unsigned char* info) {
     for (i=0; i < length; i++) {
 //        strcat(info, bufferToReadFrom[index+i]);
         info[i] = bufferToReadFrom[index+i];
-        dbgOutputVal(info[i]);
+//        dbgOutputVal(info[i]);
     }
     return 0;
 }
@@ -218,10 +221,10 @@ int parseInt(char* bufferToReadFrom, int index, unsigned int* info) {
     
     *info = atoi(numInStringForm);
 //    dbgOutputVal(220);
-    dbgOutputVal(info[0] & 0x000000ff);
-    dbgOutputVal((info[0] & 0x0000ff00) >> 8);
-    dbgOutputVal((info[0] & 0x00ff0000) >> 16);
-    dbgOutputVal((info[0] & 0xff000000) >> 24);
+//    dbgOutputVal(info[0] & 0x000000ff);
+//    dbgOutputVal((info[0] & 0x0000ff00) >> 8);
+//    dbgOutputVal((info[0] & 0x00ff0000) >> 16);
+//    dbgOutputVal((info[0] & 0xff000000) >> 24);
     return 0;
 }
 
