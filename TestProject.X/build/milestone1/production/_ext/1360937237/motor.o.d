@@ -838,5 +838,6 @@ build/milestone1/production/_ext/1360937237/motor.o:  \
  ../src/communication.h  \
 ../src/myjson.h  \
 ../src/navigation.h  \
- ../src/mapping.h  \
+ ../src/myi2c.h  \
+../src/mapping.h  \
 ../src/communication.h 

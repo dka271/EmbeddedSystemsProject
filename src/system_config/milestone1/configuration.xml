@@ -340,7 +340,7 @@
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>AD1EB813D9CF8D1818C94BC9BD15DF47</Checksum>
-        <ProjectFileChecksum>4E9E97DB555DE248D953FFD3CE8E2BF2</ProjectFileChecksum>
+        <ProjectFileChecksum>F69D0E3F60B46C173341CC17DAC1AA61</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>mapping.h</Name>
@@ -382,24 +382,24 @@
     </Templates>
     <CompilerItems>
       <C32-AS>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\system_config\milestone1"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\milestone1"/>
-        <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\Users\Daniel\Desktop\TestProject\firmware\src\system_config\milestone1\framework"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/system_config/milestone1"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/milestone1"/>
+        <Include value="C:/microchip/harmony/v1_09/framework"/>
+        <Include value="C:/Users/Zea mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/system_config/milestone1/framework"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
         <Define value="__XC"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

@@ -63,6 +63,7 @@ unsigned char commCalculateChecksum(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
     
 void commSendMsgFromISR(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
 void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]);
+void commSendMsgToWifiQueue(unsigned char msg[SEND_QUEUE_BUFFER_SIZE]);//Do not use this outside of the Communication task
 void readPublic(char* bufferToWriteTo, int size);
 void readPublic2(char* bufferToWriteTo, int size);
 //void readPublicIntoBuffer();

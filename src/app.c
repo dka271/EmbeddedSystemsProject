@@ -128,12 +128,6 @@ void APP_Initialize ( void )
         dbgPauseAll();
     }
     
-   
-    
-    
-    //bool thing = DRV_TMR0_Start();
-    //DRV_USART0_Open();
-    
     
     /* TODO: Initialize your application's state machine and other
      * parameters.
@@ -143,9 +137,6 @@ void APP_Initialize ( void )
 void app1SendMsgFromISR(unsigned int msg){
     dbgOutputLoc(DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_ENTER);
     BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
-   //xQueueSendFromISR(gpioQueue, (void *) &msg, &xHigherPriorityTaskWoken);//&xHigherPriorityTaskWoken);
-     //xQueueSendFromISR(gpioQueue, &msg, &xHigherPriorityTaskWoken);
-    //xQueueSendFromISR(gpioQueue, &msg, NULL);
     xQueueSendToBackFromISR(gpioQueue, &msg, NULL);
     dbgOutputLoc(DBG_LOC_APP1_TMR_ISR_ADD_MSG_TO_QUEUE_EXIT);
 }
@@ -185,16 +176,7 @@ void APP_Tasks ( void )
                 
                 unsigned int receivemsg;
                 unsigned int testq = 1;
-                //unsigned int previousValue1 = 0;
-                //unsigned int speed1;
-                //unsigned int previousValue2 = 0;
-                //unsigned int speed2;
-                //unsigned int dirCount = 0;
                 app1Iter = 0;
-                //Motor1SetPWM(1);
-                //Motor2SetPWM(1);
-                //Motor1SetDirection(MOTOR_1_FORWARDS);
-                //Motor2SetDirection(MOTOR_2_FORWARDS);
                 
                 
                 
@@ -210,9 +192,6 @@ void APP_Tasks ( void )
                 bool thing1 = DRV_TMR1_Start();
                 bool thing2 = DRV_TMR2_Start();
                 bool thing3 = DRV_TMR3_Start();
-                //DRV_OC0_Start();
-                //DRV_OC1_Start();
-                //DRV_OC2_Start();
                
                 dbgOutputLoc(DBG_LOC_APP1_BEFORE_WHILE);
                 
@@ -223,110 +202,11 @@ void APP_Tasks ( void )
                     dbgOutputLoc(DBG_LOC_APP1_BEFORE_RECEIVE);
                     BaseType_t receiveCheck = xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY);
                     dbgOutputLoc(DBG_LOC_APP1_AFTER_RECEIVE);
-//                    xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY);
-                    //if(xQueueReceive(gpioQueue, &receivemsg, portMAX_DELAY) == pdTRUE){
                     
                     if(receiveCheck == pdTRUE){
                         //Nop();
                         if (1){//receivemsg >= 1){
-                            /*speed1 = (receivemsg & 0x0000ffff) - previousValue1;
-                            //speed1 = TMR3;
-                            previousValue1 = receivemsg & 0x0000ffff;
-                            speed2 = ((receivemsg & 0xffff0000) >> 16) - previousValue2;
-                            //speed2 = TMR5;
-                            previousValue2 = ((receivemsg & 0xffff0000) >> 16);
-                            dirCount++;
-                            if (dirCount <= 20){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(1);
-                            }else if (dirCount <= 40){
-                                Motor1SetDirection(MOTOR_1_BACKWARDS);
-                                //Motor2SetDirection(MOTOR_2_BACKWARDS);
-                                //dirCount = 0;
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(1);
-                            }else if (dirCount <= 60){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(1);
-                            }else if (dirCount <= 80){
-                                Motor1SetDirection(MOTOR_1_BACKWARDS);
-                                Motor2SetDirection(MOTOR_2_BACKWARDS);
-                                //dirCount = 0;
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(1);
-                            }else if (dirCount <= 100){
-                                //Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(1);
-                            }else if (dirCount <= 120){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(0);
-                                Motor2SetPWM(0);
-                            }else if (dirCount <= 140){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(dirCount);
-                                Motor2SetPWM(dirCount);
-                            }else if (dirCount <= 160){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(1);
-                                Motor2SetPWM(0);
-                            }else if (dirCount <= 180){
-                                Motor1SetDirection(MOTOR_1_FORWARDS);
-                                Motor2SetDirection(MOTOR_2_FORWARDS);
-                                Motor1SetPWM(0);
-                                Motor2SetPWM(1);
-                            }else if (dirCount == 200){
-                                dirCount = 0;
-                            }*/
                             
-                            
-                            //speed = 0x00005555;
-                            //Nop();
-                            /*if (app1Iter == 0){
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x54);
-                                //dbgOutputLoc(0x54);
-                                app1Iter++;
-                            } else if (app1Iter == 1){
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x65);
-                                //dbgOutputLoc(0x65);
-                                app1Iter++;
-                            } else if (app1Iter == 2){
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x61);
-                                //dbgOutputLoc(0x61);
-                                app1Iter++;
-                            } else if (app1Iter == 3){
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x6D);
-                                //dbgOutputLoc(0x6D);
-                                app1Iter++;
-                            } else if (app1Iter == 4){
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x20);
-                                //dbgOutputLoc(0x20);
-                                app1Iter++;
-                            } else {
-                                dbgOutputVal((char) speed1);
-                                dbgOutputVal((char) speed2);
-                                dbgUARTVal(0x37);
-                                //dbgOutputLoc(0x37);
-                                app1Iter = 0;
-                            }*/
                         }
                     }else{
                         Nop();

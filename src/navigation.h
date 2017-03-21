@@ -70,6 +70,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "motor.h"
 #include "communication_public.h"
 #include "mapping_public.h"
+#include "peripheral/peripheral.h"
+#include "myi2c.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility

@@ -58,6 +58,19 @@ int jsonGetSource(unsigned char *buffer, unsigned char *source){
 	return 0;
 }
 
+int jsonGetSourceString(unsigned char *buffer, unsigned char *source){
+	int index = jsonFindElementFromKey(buffer, KEY_SOURCE);
+	if (index == -1){
+		//The key was not found
+		return -1;
+	}
+	if (parseString(buffer, index, source)){
+		//There was a parse error
+		return 1;
+	}
+	return 0;
+}
+
 int jsonGetDestination(unsigned char *buffer, unsigned char *destination){
 	int index = jsonFindElementFromKey(buffer, KEY_DESTINATION);
 	if (index == -1){
@@ -149,13 +162,14 @@ int parseCharacter(char* bufferToReadFrom, int index, unsigned char *info) {
     if (bufferToReadFrom[index] != ':' && bufferToReadFrom[index+1] != '"') {
         return 1;
     }
-    index += 2;
+//    index += 2;
     
-    if (bufferToReadFrom[index+1] != '"') {
+    if (bufferToReadFrom[index+3] != '"') {
         return 1;
     }
     
-    info = &bufferToReadFrom[index];
+//    info = &bufferToReadFrom[index+2];
+    *info = bufferToReadFrom[index+2];
 //    dbgOutputVal(*info);
     return 0;
 }

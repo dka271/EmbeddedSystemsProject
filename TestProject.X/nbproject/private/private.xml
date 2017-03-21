@@ -5,11 +5,12 @@
         <group>
             <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/motor.c</file>
             <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/communication_public.h</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/navigation_public.h</file>
             <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/motor.h</file>
             <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/navigation.c</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/myjson.c</file>
+            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/electromagnet.h</file>
             <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/communication.c</file>
+            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/navigation.h</file>
+            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/electromagnet.c</file>
         </group>
     </open-files>
 </project-private>

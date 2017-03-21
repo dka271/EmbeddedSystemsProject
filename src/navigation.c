@@ -64,6 +64,9 @@ void NAVIGATION_Initialize ( void )
     if(navQueue == 0){
         dbgPauseAll();
     }
+    
+    //Initialize the I2C drivers
+//    i2cDriver = DRV_I2C_Initialize(I2C_ID_1, &i2c_init_data);
 }
 
 void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
@@ -97,10 +100,6 @@ unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
 void NAVIGATION_Tasks ( void )
 {
     dbgOutputLoc(DBG_LOC_NAV_ENTER);
-    
-    //Variables to be used for testing
-    int Is_Testing_Speed = 0;
-    
     //Variables to be used for navigation
     unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
     unsigned int previousValue1 = 0;
@@ -108,13 +107,21 @@ void NAVIGATION_Tasks ( void )
     unsigned int previousValue2 = 0;
     unsigned int speed2;
     unsigned int pwmCount = 0;
-    unsigned int desiredSpeed = 0;
+    unsigned int desiredSpeed = ROVER_SPEED_STOPPED;
+    int ticksRemaining = ROVER_TICKS_REMAINING_NONE;
     int m1PID;
     int m2PID;
-    Motor1SetPWM(0);
-    Motor2SetPWM(0);
-    Motor1SetDirection(MOTOR_1_FORWARDS);
-    Motor2SetDirection(MOTOR_2_FORWARDS);
+    SetDirectionForwards();
+    
+    //For electromagnet testing
+//    ElectromagnetSetOff();
+    
+    //For color sensor testing
+    I2C_MODULE_ID i2cbus = I2C_ID_1;
+    if (MyI2CInit(i2cbus, 50000000, 57600)){
+        TCS_Init(i2cbus, 0xff, TCS_AGAIN_16X);
+        TCS_IntConfig(i2cbus, 0, 0, 0);
+    }
 
     dbgOutputLoc(DBG_LOC_NAV_BEFORE_WHILE);
     while(1){
@@ -132,45 +139,42 @@ void NAVIGATION_Tasks ( void )
             //Handle a specific message
             if (msgId == NAV_TIMER_COUNTER_3_ID_SENSOR){
                 //Motor 2 Encoder Message Handler
-                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                //dbgOutputVal(receivemsgint & 0x000000ff);
                 speed2 = (receivemsgint & 0x0000ffff) - previousValue2;
-                //dbgUARTVal(speed2);
                 previousValue2 = receivemsgint & 0x0000ffff;
+                
+                //Handle remaining distance
+                if (GetMotorDirection() == ROVER_DIRECTION_LEFT){
+                    HandleDistanceRemaining(&desiredSpeed, &ticksRemaining, speed2);
+                
+                    //Handle Daniel's server testing
+                    motorTestNavSendSpeed(speed2);
+                }
 
                 //Handle PWM stuff
                 m2PID = PID2(desiredSpeed, speed2);
             }else if (msgId == NAV_TIMER_COUNTER_5_ID_SENSOR){
                 //Motor 2 Encoder Message Handler
-                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                //dbgOutputVal(receivemsgint & 0x000000ff);
                 speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
-//                        dbgUARTVal(speed1);
-//                        dbgOutputVal(speed1);
                 previousValue1 = receivemsgint & 0x0000ffff;
+                
+                //Handle remaining distance
+                if (GetMotorDirection() != ROVER_DIRECTION_LEFT){
+                    HandleDistanceRemaining(&desiredSpeed, &ticksRemaining, speed1);
+                
+                    //Handle Daniel's server testing
+                    motorTestNavSendSpeed(speed1);
+                }
 
                 //Handle PWM stuff
                 m1PID = PID1(desiredSpeed, speed1);
                 
-                //Change the desired speed for testing, comment this out when done
-//                desiredSpeed++;
-//                if (desiredSpeed > 90){
-//                    desiredSpeed = 0;
-//                }
-
+                //Handle unit testing
                 if (UNIT_TESTING){
                     encoderSpeedTest(speed1);
                 }
-                if (Is_Testing_Speed){
-                    //Handle server testing of the speed
-                    char commMsg[COMM_QUEUE_BUFFER_SIZE];
-                    commMsg[0] = speed1 & 0xff;
-                    commMsg[1] = NAV_MOTOR_SPEED_ID;
-                    commMsg[COMM_SOURCE_ID_IDX] = COMM_OTHER_ID;
-                    commMsg[COMM_CHECKSUM_IDX] = commCalculateChecksum(commMsg);
-                    commSendMsg(commMsg);
+                //Handle color sensor testing
+                if (COLOR_SENSOR_SERVER_TESTING){
+                    ServerTestColorSensor(i2cbus);
                 }
             }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
                 //Handle stuff from color sensor 1
@@ -183,51 +187,18 @@ void NAVIGATION_Tasks ( void )
                 }
             }else if (msgId == NAV_MAPPING_ID_SENSOR){
                 //Handle stuff from the mapping queue
-                //dbgOutputVal((receivemsgint & 0x00ff0000) >> 16);
-                //dbgOutputVal((receivemsgint & 0x0000ff00) >> 8);
-                //dbgOutputVal(receivemsgint & 0x000000ff);
-
-                unsigned char msg[MAP_QUEUE_BUFFER_SIZE];
-                msg[0] = 0;
-                msg[1] = 0x11;
-                msg[2] = 0x22;
-                msg[3] = 0x33;
-                msg[4] = 0x44;
-                msg[5] = 0x55;
-                msg[6] = 0x66;
-                msg[7] = 0x77;
-                msg[8] = 0x88;
-                msg[9] = 0x99;
-                msg[10] = 0xaa;
-                msg[11] = 0xbb;
-                msg[12] = 0xcc;
-                msg[MAP_SOURCE_ID_IDX] = (MAP_NAVIGATION_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
-                msg[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg);
-                mapSendMsg(msg);
             }else if (msgId == NAV_PWM_TIMER_ID){
                 //Handle PWM timer messages
-                //int ticksTarget = TEST_SPEED_TICKS;
                 Motor1SetPWM(GetPWMFromValue(m1PID, pwmCount));
                 Motor2SetPWM(GetPWMFromValue(m2PID, pwmCount));
-//                        dbgOutputVal(m1PID);
-                //dbgOutputVal(m2PID);
                 pwmCount++;
                 if (pwmCount >= 25){
                     pwmCount = 0;
                 }
             }else if (msgId == NAV_OTHER_ID){
                 //Handle a message from another source
-//                Nop();
-                if (receivemsg[1] == NAV_MOTOR_SPEED_ID){
-                    //Got speed from the test server
-                    desiredSpeed = (int) receivemsg[0];
-                    dbgOutputVal(desiredSpeed);
-                    if (desiredSpeed == 0){
-                        Is_Testing_Speed = 0;
-                    }else{
-                        Is_Testing_Speed = 1;
-                    }
-                }
+                //Handle Daniel's server testing
+                motorTestNavReceive(receivemsg, &desiredSpeed, &ticksRemaining);
             }
         }
     }

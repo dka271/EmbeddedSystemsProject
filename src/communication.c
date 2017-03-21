@@ -92,6 +92,14 @@ void commSendMsg(unsigned char msg[COMM_QUEUE_BUFFER_SIZE]) {
     xQueueSendToBack(commQueue, msg, portMAX_DELAY);
 }
 
+void commSendMsgToWifiQueue(unsigned char msg[SEND_QUEUE_BUFFER_SIZE]){
+    int j;
+    for (j = 0; j < strlen(msg); j++) {
+        xQueueSendToBack(sendQueue, &msg[j], portMAX_DELAY);
+        PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
+    }
+}
+
 void constructFieldItem(fieldItem *object, unsigned char objectType, unsigned char versionNum, unsigned char length, unsigned char width, unsigned char centerX, unsigned char centerY, unsigned char orientation) {
     object->objectType = objectType;
     object->versionNumber = versionNum;
@@ -240,13 +248,20 @@ void COMMUNICATION_Tasks(void) {
 			} else if (msgId == COMM_UART_ID) {
 				//Handle input from the WiFly
 				dbgOutputLoc(DBG_LOC_COMM_IF_UART);
+                
+                //Handle receiving from Daniel's test servers
+                motorTestCommReceive(receivemsg);
+                electromagnetTestCommReceive(receivemsg);
+                
+                //Handle parsing
 				if (UNIT_TESTING) {
 					commQueueReceiveTest(receivemsg);
 				} else {
 					//Parse that stuff
 					fieldItem testFieldItem;
-					unsigned char Source;
-					unsigned char Dest;
+					unsigned char Source = 0;
+//                    unsigned char SourceStr[2];
+					unsigned char Dest = 0;
 					unsigned char MessageType[4];
 					unsigned char SequenceNumber;
 					int Checksum;
@@ -254,6 +269,11 @@ void COMMUNICATION_Tasks(void) {
 					if (jsonGetChecksum(receivemsg, &Checksum)) {
 						//error
 						dbgOutputLoc(DBG_LOC_BAD_ERROR - 5);
+					}
+                    
+					if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
+						//error
+						dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
 					}
 					
 					//Check Checksum
@@ -268,7 +288,7 @@ void COMMUNICATION_Tasks(void) {
 						} else {
 							//bad
 							NumBadChecksums++;
-							dbgOutputVal(NumBadChecksums);
+//							dbgOutputVal(NumBadChecksums);
 							dbgOutputLoc(DBG_LOC_BAD_ERROR - 7);
 						}
 					}
@@ -281,7 +301,7 @@ void COMMUNICATION_Tasks(void) {
 					} else {
 						//This is bad
 						NumDroppedMessages++;
-						dbgOutputVal(NumDroppedMessages);
+//						dbgOutputVal(NumDroppedMessages);
 						dbgOutputLoc(DBG_LOC_BAD_ERROR - 6);
 					}
 					PreviousSequenceNumber = SequenceNumber;
@@ -289,25 +309,6 @@ void COMMUNICATION_Tasks(void) {
 					if (jsonGetSource(receivemsg, &Source)) {
 						//error
 						dbgOutputLoc(DBG_LOC_BAD_ERROR - 1);
-					}else if (Source == 'v'){
-						//Handle stuff from my test client
-						dbgOutputVal(Source);
-						int speed;
-//                        Nop();
-						//I store the speed in the checksum field because, at the time of writing, there is no working function to read from the data field
-						if(jsonGetChecksum(receivemsg, &speed) == 0){
-							//Send speed to Nav queue
-							char navMsg[NAV_QUEUE_BUFFER_SIZE];
-							navMsg[0] = speed & 0xff;
-							navMsg[1] = NAV_MOTOR_SPEED_ID;
-							navMsg[NAV_SOURCE_ID_IDX] = NAV_OTHER_ID;
-							navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
-							dbgOutputVal(navMsg[0]);
-							dbgOutputVal(navMsg[1]);
-							dbgOutputVal(navMsg[2]);
-							dbgOutputVal(navMsg[3]);
-							navSendMsg(navMsg);
-						}
 					}
 					
 					if (jsonGetDestination(receivemsg, &Dest)) {
@@ -319,10 +320,7 @@ void COMMUNICATION_Tasks(void) {
 						//error
 						dbgOutputLoc(DBG_LOC_BAD_ERROR - 3);
 					}
-					if (jsonGetSequenceNumber(receivemsg, &SequenceNumber)) {
-						//error
-						dbgOutputLoc(DBG_LOC_BAD_ERROR - 4);
-					}
+                    
 					if (jsonGetFieldItem(receivemsg, &testFieldItem)){
 						//error
 						dbgOutputLoc(DBG_LOC_BAD_ERROR-6);
@@ -331,20 +329,12 @@ void COMMUNICATION_Tasks(void) {
 			} else if (msgId == COMM_SEND_ID) {
 				//Handle sending
 				dbgOutputLoc(DBG_LOC_COMM_IF_SEND);
-                unsigned char bufferToReadFrom[RECEIVE_BUFFER_SIZE];
-                commSendMsgToSendQueue(bufferToReadFrom);
+//                unsigned char bufferToReadFrom[RECEIVE_BUFFER_SIZE];
+//                commSendMsgToSendQueue(bufferToReadFrom);
 			} else if (msgId == COMM_OTHER_ID) {
 				//Handle other stuff
-				if (receivemsg[1] == NAV_MOTOR_SPEED_ID){
-					//Handle motor speed server testing
-					char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
-					sprintf(testServerMsg, "*{\"S\":\"%c\",\"T\":\"%c\",\"M\":\"%c\",\"N\":%d,\"D\":[%d],\"C\":%d)~", 's', 'v', 's', 0, (int) receivemsg[0], (int) receivemsg[0]);
-					int j;
-					for (j = 0; j < strlen(testServerMsg); j++) {
-						xQueueSendToBack(sendQueue, &testServerMsg[j], portMAX_DELAY);
-						PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_USART_1_TRANSMIT);
-					}
-				}
+                //Handle sending to Daniel's test servers
+				motorTestCommSend(receivemsg);
 			}
 		}
 	}

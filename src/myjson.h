@@ -52,6 +52,7 @@ int jsonFindElementFromKey (unsigned char *buffer, unsigned char key);
 //Finds the source of the JSON message
 //Returns 0 if success, -1 if the key is not present, 1 if there was a parse error
 int jsonGetSource(unsigned char *buffer, unsigned char *source);
+int jsonGetSourceString(unsigned char *buffer, unsigned char *source);
 
 //Finds the destination of the JSON message
 //Returns 0 if success, -1 if the key is not present, 1 if there was a parse error
