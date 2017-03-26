@@ -157,6 +157,8 @@ void commSendMsgToSendQueue(unsigned char testString[RECEIVE_BUFFER_SIZE]) {
     int i;
     //unsigned char testString[76];
 
+    
+    //UNCOMMENT ME
 //    fieldItem item;
 //    constructFieldItem(&item, (unsigned char)2, (unsigned char)15, (unsigned char)99, (unsigned char)66, (unsigned char)22, (unsigned char)11, (unsigned char)200);
 //    convertFieldItemToJSON(testString, item, 's', 'f', 'm', SeqNum);
@@ -164,6 +166,8 @@ void commSendMsgToSendQueue(unsigned char testString[RECEIVE_BUFFER_SIZE]) {
     
     //    convertSensorMsgToJson(testString, 'f', 's', 'm', (unsigned char)SeqNum);
 //    convertSensorMsgToJsonWithData(testString, 's', 'f', 'm', (unsigned char) SeqNum);
+    
+    //UNCOMMENT ME
     SeqNum++;
     if (SeqNum >= 64) {
         SeqNum = 0;
