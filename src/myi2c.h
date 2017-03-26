@@ -21,7 +21,7 @@
 #include "debug.h"
 #include "communication_public.h"
 
-#define COLOR_SENSOR_SERVER_TESTING 1
+#define COLOR_SENSOR_SERVER_TESTING 0
 
 //Information specific to the TCS34725 RGB Color Sensor
 //I2C address

@@ -63,37 +63,35 @@ static QueueHandle_t mapQueue;
     See prototype in mapping.h.
  */
 
-void MAPPING_Initialize ( void )
-{
+void MAPPING_Initialize(void) {
     /* Place the App state machine in its initial state. */
     mappingData.state = MAPPING_STATE_INIT;
-    
+
     //Initialize the mapping queue
-    mapQueue = xQueueCreate(10, sizeof(unsigned char[MAP_QUEUE_BUFFER_SIZE]));
-    if(mapQueue == 0){
+    mapQueue = xQueueCreate(10, sizeof (unsigned char[MAP_QUEUE_BUFFER_SIZE]));
+    if (mapQueue == 0) {
         dbgPauseAll();
     }
 }
 
-void mapSendMsgFromISR(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
-    BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
+void mapSendMsgFromISR(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]) {
+    BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     xQueueSendToBackFromISR(mapQueue, msg, NULL);
 }
 
-void mapSendMsg(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
-    BaseType_t xHigherPriorityTaskWoken =  pdTRUE;//pdFALSE;
+void mapSendMsg(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]) {
+    BaseType_t xHigherPriorityTaskWoken = pdTRUE; //pdFALSE;
     xQueueSendToBack(mapQueue, msg, portMAX_DELAY);
 }
-    
-unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
+
+unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]) {
     unsigned char sum = 0;
     unsigned int i;
-    for (i = 0; i < MAP_QUEUE_BUFFER_SIZE - 1; i++){
+    for (i = 0; i < MAP_QUEUE_BUFFER_SIZE - 1; i++) {
         sum += msg[i];
     }
     return sum;
 }
-
 
 /******************************************************************************
   Function:
@@ -103,19 +101,20 @@ unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]){
     See prototype in mapping.h.
  */
 
-void MAPPING_Tasks ( void ) {
+void MAPPING_Tasks(void) {
     dbgOutputLoc(DBG_LOC_MAP_ENTER);
     unsigned char receivemsg[MAP_QUEUE_BUFFER_SIZE];
 
     dbgOutputLoc(DBG_LOC_MAP_BEFORE_WHILE);
-    while(1){
+    DRV_ADC_Open();
+    while (1) {
         //Block until a message is received
         dbgOutputLoc(DBG_LOC_MAP_BEFORE_RECEIVE);
         BaseType_t receiveCheck = xQueueReceive(mapQueue, receivemsg, portMAX_DELAY);
         dbgOutputLoc(DBG_LOC_MAP_AFTER_RECEIVE);
 
         //Handle the message
-        if(receiveCheck == pdTRUE){
+        if (receiveCheck == pdTRUE) {
             //Convert the message into integer format
             unsigned int receivemsgint0 = receivemsg[0] | (receivemsg[1] << 8) | (receivemsg[2] << 16) | (receivemsg[3] << 24);
             unsigned int receivemsgint1 = receivemsg[4] | (receivemsg[5] << 8) | (receivemsg[6] << 16) | (receivemsg[7] << 24);
@@ -124,7 +123,7 @@ void MAPPING_Tasks ( void ) {
             //Get the message ID
             int msgId = (receivemsg[MAP_SOURCE_ID_IDX] & MAP_SOURCE_ID_MASK) >> MAP_SOURCE_ID_OFFSET;
             //Handle a specific message
-            if (msgId == MAP_NAVIGATION_ID){
+            if (msgId == MAP_NAVIGATION_ID) {
                 //Handle a message from the navigation thread
                 unsigned char msg2[6];
                 msg2[0] = 0x1f;
@@ -135,20 +134,61 @@ void MAPPING_Tasks ( void ) {
                 msg2[COMM_SOURCE_ID_IDX] = (COMM_MAPPING_ID & 0x00000001) << COMM_SOURCE_ID_OFFSET;
                 msg2[COMM_CHECKSUM_IDX] = commCalculateChecksum(msg2);
                 commSendMsg(msg2);
-            }else if (msgId == MAP_PIXY_CAM_ID){
+            } else if (msgId == MAP_PIXY_CAM_ID) {
                 //Handle input from the pixy cam
-            }else if (msgId == MAP_ULTRASONIC_ID){
-                //Handle input from the ultrasonic sensor
-                if (UNIT_TESTING){
-                    mapQueueReceiveTest(receivemsg);
+            } else if (msgId == MAP_ULTRASONIC_ID) {
+
+
+                if (MS3DEMO) {
+                    short rec = 0;
+                    rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                    char sonVal[RECEIVE_BUFFER_SIZE];
+
+                    float son0Dist = ((float) rec) * 10000.0;
+                    son0Dist = son0Dist - 7929.0;
+                    son0Dist = son0Dist / 14986.0;
+                    unsigned short son0Out = ((unsigned short) son0Dist);
+
+                    sprintf(sonVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", son0Out, 0);
+                    commSendMsgToSendQueue(sonVal);
+
                 }
-            }else if (msgId == MAP_IR_1_ID){
+            } else if (msgId == MAP_IR_1_ID) {
                 //Handle input from the first IR sensor
-            }else if (msgId == MAP_IR_2_ID){
+                short rec = 0;
+                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                char ir0Val[RECEIVE_BUFFER_SIZE];
+
+
+                unsigned short ir0Out = 0;
+                float ir0Numer = 7501.53;
+                float ir0Exp = 1000.0 / 1009.0;
+                float ir0Denom = powf(((float) rec), ir0Exp);
+                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
+
+                sprintf(ir0Val, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", rec, 1);
+                commSendMsgToSendQueue(ir0Val);
+
+
+            } else if (msgId == MAP_IR_2_ID) {
+                short rec = 0;
+                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                char ir1Val[RECEIVE_BUFFER_SIZE];
+
+
+                unsigned short ir1Out = 0;
+                float ir1Numer = 7501.53;
+                float ir1Exp = 1000.0 / 1009.0;
+                float ir1Denom = powf(((float) rec), ir1Exp);
+                ir1Out = (unsigned short) (ir1Numer / ir1Denom);
+
+                sprintf(ir1Val, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", ir1Out, 2);
+                commSendMsgToSendQueue(ir1Val);
+
                 //Handle input from the second IR sensor
-            }else if (msgId == MAP_MAPPING_TIMER_ID){
+            } else if (msgId == MAP_MAPPING_TIMER_ID) {
                 //Start sampling
-//                        dbgOutputVal(receivemsg[13]);
+                //                        dbgOutputVal(receivemsg[13]);
 
                 unsigned char msg1[NAV_QUEUE_BUFFER_SIZE];
                 msg1[0] = 0x5a;
@@ -161,7 +201,7 @@ void MAPPING_Tasks ( void ) {
     }
 }
 
- 
+
 
 /*******************************************************************************
  End of File

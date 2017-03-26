@@ -60,6 +60,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
 #include <xc.h>
+#include <math.h>
 #include <sys/attribs.h>
 #include "app_public.h"
 #include "navigation_public.h"
@@ -67,15 +68,73 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "communication_public.h"
 #include "system_definitions.h"
 
+//Declare privates
+#define ADC_NUM_SAMPLE_PER_AVERAGE 16
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: System Interrupt Vector Functions
 // *****************************************************************************
 // *****************************************************************************
+int incr = 0;
+
+void IntHandlerDrvAdc(void) {
+    /* Clear ADC Interrupt Flag */
+
+    ADC_SAMPLE irSensor0 = 0;
+    ADC_SAMPLE irSensor1 = 0;
+    ADC_SAMPLE sonarSensor0 = 0;
+    uint8_t i = 0;
+
+    for (i = 0; i < ADC_NUM_SAMPLE_PER_AVERAGE; i += 2) {
+        irSensor1 += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i);
+        sonarSensor0 += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i + 1);
+    }
+
+    irSensor1 = irSensor1 / 8;
+    sonarSensor0 = sonarSensor0 / 8;
+
+
+
+    unsigned char sendIR0[MAP_QUEUE_BUFFER_SIZE];
+    unsigned char sendIR1[MAP_QUEUE_BUFFER_SIZE];
+    unsigned char sendUltra0[MAP_QUEUE_BUFFER_SIZE];
+
+
+
+    sendIR0[0] = (irSensor0 & 0xFF00) >> 8;
+    sendIR0[1] = (irSensor0 & 0x00FF);
+
+    sendIR1[0] = (irSensor1 & 0xFF00) >> 8;
+    sendIR1[1] = (irSensor1 & 0x00FF);
+
+    sendUltra0[0] = (sonarSensor0 & 0xFF00) >> 8;
+    sendUltra0[1] = (sonarSensor0 & 0x00FF);
+
+    sendIR0[MAP_SOURCE_ID_IDX] = (MAP_IR_1_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_2_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    sendUltra0[MAP_SOURCE_ID_IDX] = (MAP_ULTRASONIC_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+
+    if (incr == 20) {
+
+        mapSendMsgFromISR(sendUltra0);
+        mapSendMsgFromISR(sendIR1);
+
+        incr = 0;
+    } else {
+        incr++;
+    }
+
+
+
+
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_ADC_1);
+    PLIB_ADC_SampleAutoStartEnable(ADC_ID_1);
+}
 
 void IntHandlerDrvTmrInstance0(void) {
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
-    
+
     //Sample the timer counters and send their values to the navigation queue
     unsigned short t3 = TMR3;
     unsigned short t5 = TMR5;
@@ -91,7 +150,7 @@ void IntHandlerDrvTmrInstance0(void) {
     msg2[NAV_SOURCE_ID_IDX] = (NAV_TIMER_COUNTER_5_ID_SENSOR & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     msg2[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg2);
     navSendMsgFromISR(msg2);
-    
+
     unsigned char msg3[MAP_QUEUE_BUFFER_SIZE];
     msg3[MAP_SOURCE_ID_IDX] = (MAP_MAPPING_TIMER_ID & 0x00000007) << MAP_SOURCE_ID_OFFSET;
     msg3[MAP_CHECKSUM_IDX] = mapCalculateChecksum(msg3);
@@ -125,23 +184,23 @@ void IntHandlerDrvUsartInstance0(void) {
             char bufferToWriteTo[COMM_QUEUE_BUFFER_SIZE];
             //int MY_BUFFER_SIZE = 7;
             readPublic2(bufferToWriteTo, COMM_QUEUE_BUFFER_SIZE - 2);
-//            if (readPublicIntoBuffer2(bufferToWriteTo)){
-//                bufferToWriteTo[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000003) << COMM_SOURCE_ID_OFFSET;
-//                bufferToWriteTo[COMM_CHECKSUM_IDX] = commCalculateChecksum(bufferToWriteTo);
-//                commSendMsgFromISR(bufferToWriteTo);
-//            }
+            //            if (readPublicIntoBuffer2(bufferToWriteTo)){
+            //                bufferToWriteTo[COMM_SOURCE_ID_IDX] = (COMM_UART_ID & 0x00000003) << COMM_SOURCE_ID_OFFSET;
+            //                bufferToWriteTo[COMM_CHECKSUM_IDX] = commCalculateChecksum(bufferToWriteTo);
+            //                commSendMsgFromISR(bufferToWriteTo);
+            //            }
             //readPublicIntoBuffer();
-            
+
             dbgOutputLoc(DBG_LOC_COMM_INSIDE_RX_INT);
         }
         PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_USART_1_RECEIVE);
         //SYS_INT_SourceStatusClear(INT_SOURCE_USART_1_RECEIVE);
     }
-    if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_TRANSMIT)) { 
+    if (SYS_INT_SourceStatusGet(INT_SOURCE_USART_1_TRANSMIT)) {
         dbgOutputLoc(DBG_LOC_COMM_ENTER_UART_WRITE_ISR);
         while (1) {
             if (!checkIfSendQueueIsEmpty()) {
-//                unsigned char bufferToReadFrom[SEND_QUEUE_BUFFER_SIZE];
+                //                unsigned char bufferToReadFrom[SEND_QUEUE_BUFFER_SIZE];
                 unsigned char bufferToReadFrom[7];
                 if (PLIB_USART_TransmitterBufferIsFull(USART_ID_1)) {
                     break;
@@ -165,8 +224,7 @@ void IntHandlerDrvUsartInstance0(void) {
     dbgOutputLoc(DBG_LOC_COMM_LEAVE_UART_WRITE_ISR);
 }
 
-void IntHandlerDrvTmrInstance3(void)
-{
+void IntHandlerDrvTmrInstance3(void) {
     /*unsigned short t3 = TMR3;
     unsigned short t5 = TMR5;
     unsigned char msg1[NAV_QUEUE_BUFFER_SIZE];
@@ -188,10 +246,10 @@ void IntHandlerDrvTmrInstance3(void)
     msg3[NAV_SOURCE_ID_IDX] = (NAV_PWM_TIMER_ID & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     msg3[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg3);
     navSendMsgFromISR(msg3);
-    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_4);
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_4);
 }
 
- 
+
 
 /*******************************************************************************
  End of File

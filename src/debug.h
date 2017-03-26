@@ -78,7 +78,7 @@ extern "C" {
         Any additional remarks
      */
 #define EXAMPLE_CONSTANT 0
-    
+#define MS3DEMO true
 //Constants that refer to specific parts of the code
 #define DBG_LOC_BAD_ERROR 0xff
 #define DBG_LOC_PAUSE_ALL 1
