@@ -48,6 +48,10 @@ extern "C" {
 #define MAP_SOURCE_ID_IDX 13
 #define MAP_SOURCE_ID_MASK 0xe0
 #define MAP_SOURCE_ID_OFFSET 5
+#define MAP_OCCUPANCY_ROWS 127
+#define MAP_OCCUPANCY_COLUMNS 97
+#define MAP_OBJECT_THRESHOLD 200
+#define MAP_ROVER_THRESHOLD 200
     
 unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]);
     

@@ -71,6 +71,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "motor.h"
 #include "navigation_public.h"
 #include "communication_public.h"
+#include "mapping_public.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
@@ -127,6 +128,9 @@ typedef struct
     MAPPING_STATES state;
 
     /* TODO: Define any additional data used by the application. */
+//    short OCCUPANCY_GRID[MAP_OCCUPANCY_ROWS][MAP_OCCUPANCY_COLUMNS];
+        short OCCUPANCY_GRID[30][MAP_OCCUPANCY_COLUMNS];
+    short rover_y_pos;
 
 } MAPPING_DATA;
 

@@ -3,14 +3,19 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/motor.c</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/communication_public.h</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/motor.h</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/navigation.c</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/electromagnet.h</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/communication.c</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/navigation.h</file>
-            <file>file:/C:/Users/Zea%20mays/Desktop/EmbeddedRepo/EmbeddedSystemsProject/firmware/src/electromagnet.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/mapping.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/communication_public.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/debug.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1/system_definitions.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/app.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/navigation.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/mapping.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/communication.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/myjson.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/mapping_public.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1/system_interrupt.c</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/navigation_public.h</file>
+            <file>file:/C:/Users/Ushan/Google%20Drive/LENOVO/Embedded/Repository/firmware/src/debug.c</file>
         </group>
     </open-files>
 </project-private>
