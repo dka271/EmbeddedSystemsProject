@@ -102,6 +102,15 @@ void DRV_ADC_Initialize(void)
     PLIB_ADC_MuxAInputScanEnable(DRV_ADC_ID_1);
 
  
+ 
+/*scan enable*/
+    /* Select Scan Input 2 */
+    PLIB_ADC_InputScanMaskAdd(DRV_ADC_ID_1, ADC_INPUT_SCAN_AN11);
+    
+    /* Enable Scan mode */
+    PLIB_ADC_MuxAInputScanEnable(DRV_ADC_ID_1);
+
+ 
     /* Initialize ADC Interrupt */
     PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_ADC_1);
     PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_ADC_1);

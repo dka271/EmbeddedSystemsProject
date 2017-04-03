@@ -140,8 +140,20 @@ void MAPPING_Tasks(void) {
                 
                 commSendMsg(msg2);
             } else if (msgId == MAP_PIXY_CAM_ID) {
-                //Handle input from the pixy cam
-            } else if (msgId == MAP_ULTRASONIC_ID&&0) {
+                
+                
+                  short rec = 0;
+                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                
+                char pixyVal[RECEIVE_BUFFER_SIZE];
+                Nop();
+                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", rec, 666);
+                commSendMsgToSendQueue(pixyVal);
+                
+                
+                
+                
+            } else if (msgId == MAP_ULTRASONIC_ID) {
 
 
 //                if (MS3DEMO) {
@@ -206,16 +218,6 @@ void MAPPING_Tasks(void) {
                 
                 char gridOut[RECEIVE_BUFFER_SIZE];
                 
-                /*
-                 *sprintf(gridOut, "%07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d\n\r", 
-                        mappingData.OCCUPANCY_GRID[0][0], mappingData.OCCUPANCY_GRID[0][1], mappingData.OCCUPANCY_GRID[0][2], 
-                        mappingData.OCCUPANCY_GRID[0][3], mappingData.OCCUPANCY_GRID[0][4], mappingData.OCCUPANCY_GRID[0][5], 
-                        mappingData.OCCUPANCY_GRID[0][6], mappingData.OCCUPANCY_GRID[0][7], mappingData.OCCUPANCY_GRID[0][8], 
-                        mappingData.OCCUPANCY_GRID[0][9], mappingData.OCCUPANCY_GRID[0][10], mappingData.OCCUPANCY_GRID[0][11], 
-                        mappingData.OCCUPANCY_GRID[0][12], mappingData.OCCUPANCY_GRID[0][13], mappingData.OCCUPANCY_GRID[0][14], 
-                        mappingData.OCCUPANCY_GRID[0][15]);
-                */
-                
                 sprintf(gridOut, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
                         mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[1][ 1 ], mappingData.OCCUPANCY_GRID[1][ 2 ],
                         mappingData.OCCUPANCY_GRID[1][ 3 ], mappingData.OCCUPANCY_GRID[1][ 4 ], mappingData.OCCUPANCY_GRID[1][ 5 ],
@@ -251,14 +253,14 @@ void MAPPING_Tasks(void) {
                         mappingData.OCCUPANCY_GRID[1][ 93 ], mappingData.OCCUPANCY_GRID[1][ 94 ], mappingData.OCCUPANCY_GRID[1][ 95 ],
                         mappingData.OCCUPANCY_GRID[1][ 96]);
                 
-                commSendMsgToSendQueue(gridOut);
+//                commSendMsgToSendQueue(gridOut);
                 
-
-//                mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][son0Out] += (5<<8);
-//                short iFillShort;
-//                for (iFillShort = 0; iFillShort <son0Out/2; ++iFillShort) {                     //ir0Out is divided by 2 because cells are 2cm wide
-//                    mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][iFillShort] -= (5<<8);
-//                }
+                
+                char testOut[RECEIVE_BUFFER_SIZE];
+                
+                sprintf(testOut,"ULTRA WORKS\n\r");
+                commSendMsgToSendQueue(testOut);        
+                
                 
             } else if (msgId == MAP_IR_2_ID) {
                 //Handle input from the first IR sensor
@@ -281,26 +283,6 @@ void MAPPING_Tasks(void) {
                     if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][i] != 0)
                         mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][i] -= 1;//(5<<8);
                 }
-                /*
-                for (int i = ir0Out; i < MAP_OCCUPANCY_COLUMNS; ++i) {
-                    short roverChance = mappingData.OCCUPANCY_GRID[i][mappingData.rover_y_pos] >> 8;
-                    short objectChance = mappingData.OCCUPANCY_GRID[i][mappingData.rover_y_pos] & 0b00FF;
-                    if (objectChance >= MAP_OBJECT_THRESHOLD && roverChance >= MAP_ROVER_THRESHOLD)
-                        
-                }*/
-                
-//                sprintf(ir0Val, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", rec, 1);
-//                commSendMsgToSendQueue(ir0Val);
-                
-//                char gridOut[RECEIVE_BUFFER_SIZE];
-//                sprintf(gridOut, "%07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d %07d\n\r", 
-//                        mappingData.OCCUPANCY_GRID[0][0], mappingData.OCCUPANCY_GRID[0][1], mappingData.OCCUPANCY_GRID[0][2], 
-//                        mappingData.OCCUPANCY_GRID[0][3], mappingData.OCCUPANCY_GRID[0][4], mappingData.OCCUPANCY_GRID[0][5], 
-//                        mappingData.OCCUPANCY_GRID[0][6], mappingData.OCCUPANCY_GRID[0][7], mappingData.OCCUPANCY_GRID[0][8], 
-//                        mappingData.OCCUPANCY_GRID[0][9], mappingData.OCCUPANCY_GRID[0][10], mappingData.OCCUPANCY_GRID[0][11], 
-//                        mappingData.OCCUPANCY_GRID[0][12], mappingData.OCCUPANCY_GRID[0][13], mappingData.OCCUPANCY_GRID[0][14], 
-//                        mappingData.OCCUPANCY_GRID[0][15]);
-//                commSendMsgToSendQueue(gridOut);
 
                 char gridOut[RECEIVE_BUFFER_SIZE];
                 int iOMG;
@@ -339,29 +321,15 @@ void MAPPING_Tasks(void) {
                         mappingData.OCCUPANCY_GRID[0][ 90 ], mappingData.OCCUPANCY_GRID[0][ 91 ], mappingData.OCCUPANCY_GRID[0][ 92 ],
                         mappingData.OCCUPANCY_GRID[0][ 93 ], mappingData.OCCUPANCY_GRID[0][ 94 ], mappingData.OCCUPANCY_GRID[0][ 95 ],
                         mappingData.OCCUPANCY_GRID[0][ 96]);
-                commSendMsgToSendQueue(gridOut);
+//                commSendMsgToSendQueue(gridOut);
+                
+                char testOut[RECEIVE_BUFFER_SIZE];
+                
+                sprintf(testOut,"IR WORKS\n\r");
+                commSendMsgToSendQueue(testOut);
 
                             
             } 
-            /*              RIP IR SENSOR #1
-            else if (msgId == MAP_IR_1_ID) {
-                short rec = 0;
-                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
-                char ir1Val[RECEIVE_BUFFER_SIZE];
-
-
-                unsigned short ir1Out = 0;
-                float ir1Numer = 7501.53;
-                float ir1Exp = 1000.0 / 1009.0;
-                float ir1Denom = powf(((float) rec), ir1Exp);
-                ir1Out = (unsigned short) (ir1Numer / ir1Denom);
-
-                sprintf(ir1Val, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", ir1Out, 2);
-                commSendMsgToSendQueue(ir1Val);
-
-                //Handle input from the second IR sensor
-            } 
-            */
             else if (msgId == MAP_MAPPING_TIMER_ID) {
                 //Start sampling
                 //                        dbgOutputVal(receivemsg[13]);

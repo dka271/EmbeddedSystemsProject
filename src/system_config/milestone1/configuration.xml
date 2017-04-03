@@ -339,13 +339,13 @@
       <Template>
         <Name>drv_adc_static.c</Name>
         <Path>Source Files/app/system_config/milestone1/framework/driver/adc/src</Path>
-        <Checksum>29B86A53B76D2D0B79AFFF6013936976</Checksum>
+        <Checksum>557C8736F1F3F56932077D9061B52D4D</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>E3CA9681D55CB0F76D946155107343F4</Checksum>
-        <ProjectFileChecksum>C7F2366D0009A17438B131B6626740D0</ProjectFileChecksum>
+        <ProjectFileChecksum>EB4D882FAC07408AA90A48C3C92EBD36</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>mapping.h</Name>
@@ -387,7 +387,7 @@
       <Template>
         <Name>drv_adc_static.h</Name>
         <Path>Header Files/app/system_config/milestone1/framework/driver/adc</Path>
-        <Checksum>2ED56A8BEBDD33E856A86427423DE620</Checksum>
+        <Checksum>5EB09A16DAAC8B31B38B8EEB60B35E52</Checksum>
       </Template>
     </Templates>
     <CompilerItems>
@@ -397,11 +397,11 @@
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/milestone1"/>
-        <Include value="C:/microchip/harmony/v1_09/framework"/>
-        <Include value="C:/Users/Ushan/Google Drive/LENOVO/Embedded/Repository/firmware/src/system_config/milestone1/framework"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\system_config\milestone1"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\milestone1"/>
+        <Include value="C:\microchip\harmony\v1_09\framework"/>
+        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\system_config\milestone1\framework"/>
         <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
         <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>

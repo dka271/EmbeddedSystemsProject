@@ -70,6 +70,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 //Declare privates
 #define ADC_NUM_SAMPLE_PER_AVERAGE 16
+#define PIXY_CENTER_VALUE 512
+#define PIXY_THRESHOLD_VALUE 20
 
 // *****************************************************************************
 // *****************************************************************************
@@ -77,33 +79,40 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 int incr = 0;
+bool flagDetected = false;
 
 void IntHandlerDrvAdc(void) {
     /* Clear ADC Interrupt Flag */
 
-    ADC_SAMPLE irSensor0 = 0;
     ADC_SAMPLE irSensor1 = 0;
     ADC_SAMPLE sonarSensor0 = 0;
+    ADC_SAMPLE pixy = 0;
     uint8_t i = 0;
 
-    for (i = 0; i < ADC_NUM_SAMPLE_PER_AVERAGE; i += 2) {
+    for (i = 0; i < 13; i += 3) {
         irSensor1 += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i);
         sonarSensor0 += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i + 1);
+        pixy += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i + 2);
+    }
+    irSensor1 += PLIB_ADC_ResultGetByIndex(ADC_ID_1, i);
+
+    irSensor1 = irSensor1 / 6;
+    sonarSensor0 = sonarSensor0 / 5;
+   
+    if(!flagDetected){
+    pixy = pixy / 5;
     }
 
-    irSensor1 = irSensor1 / 8;
-    sonarSensor0 = sonarSensor0 / 8;
 
 
 
-    unsigned char sendIR0[MAP_QUEUE_BUFFER_SIZE];
     unsigned char sendIR1[MAP_QUEUE_BUFFER_SIZE];
     unsigned char sendUltra0[MAP_QUEUE_BUFFER_SIZE];
+    unsigned char sendPixy[MAP_QUEUE_BUFFER_SIZE];
 
 
 
-    sendIR0[0] = (irSensor0 & 0xFF00) >> 8;
-    sendIR0[1] = (irSensor0 & 0x00FF);
+
 
     sendIR1[0] = (irSensor1 & 0xFF00) >> 8;
     sendIR1[1] = (irSensor1 & 0x00FF);
@@ -111,15 +120,32 @@ void IntHandlerDrvAdc(void) {
     sendUltra0[0] = (sonarSensor0 & 0xFF00) >> 8;
     sendUltra0[1] = (sonarSensor0 & 0x00FF);
 
-    sendIR0[MAP_SOURCE_ID_IDX] = (MAP_IR_1_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
-    sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_2_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    
+     sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_2_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
     sendUltra0[MAP_SOURCE_ID_IDX] = (MAP_ULTRASONIC_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    
+    if(!flagDetected){
+    sendPixy[0] = (pixy & 0xFF00) >> 8;
+    sendPixy[1] = (pixy & 0x00FF);
+    }
 
-    if (incr == 20) {
+   
+    if(!flagDetected){
+    sendPixy[MAP_SOURCE_ID_IDX] = (MAP_PIXY_CAM_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    }
+    
+    if (incr == 25) {
 
+        
         mapSendMsgFromISR(sendUltra0);
         mapSendMsgFromISR(sendIR1);
-
+        
+        if(!flagDetected){
+            if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
+            mapSendMsgFromISR(sendPixy);
+            flagDetected = true;
+            }
+        }
         incr = 0;
     } else {
         incr++;
