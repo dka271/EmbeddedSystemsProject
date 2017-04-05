@@ -5,7 +5,7 @@
     <SystemStartScript/>
   </DisplayManager>
   <General>
-    <HarmonyPath path="../../../../../../microchip/harmony/v1_09"/>
+    <HarmonyPath path="../../../../../../../microchip/harmony/v1_09"/>
     <Processor name=""/>
     <ForceOptimization flag="true"/>
     <MergeStrategy flag="USER_ALL"/>
@@ -345,7 +345,7 @@
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/milestone1</Path>
         <Checksum>E3CA9681D55CB0F76D946155107343F4</Checksum>
-        <ProjectFileChecksum>EB4D882FAC07408AA90A48C3C92EBD36</ProjectFileChecksum>
+        <ProjectFileChecksum>3279F6BF5DD14FB42810B3F5FF890F63</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>mapping.h</Name>
@@ -392,24 +392,24 @@
     </Templates>
     <CompilerItems>
       <C32-AS>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
       </C32-AS>
       <C32>
-        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src"/>
-        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\system_config\milestone1"/>
-        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\milestone1"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\SensorRoverTest2\firmware\src"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\SensorRoverTest2\firmware\src\system_config\milestone1"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\SensorRoverTest2\firmware\src\milestone1"/>
         <Include value="C:\microchip\harmony\v1_09\framework"/>
-        <Include value="C:\Users\Karthik Admin\Documents\Spring2017\Embedded\mergedCode\firmware\src\system_config\milestone1\framework"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
-        <Include value="../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="C:\Users\Ushan\Google Drive\LENOVO\Embedded\Repository\SensorRoverTest2\firmware\src\system_config\milestone1\framework"/>
+        <Include value="../../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MX"/>
+        <Include value="../../../../../../../../../microchip/harmony/v1_09/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/milestone1"/>
         <Define value="__XC"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../../../../microchip/harmony/v1_09/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

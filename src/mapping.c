@@ -161,9 +161,12 @@ void MAPPING_Tasks(void) {
                 rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
                 char sonVal[RECEIVE_BUFFER_SIZE];
 
-                float son0Dist = ((float) rec) * 10000.0;
-                son0Dist = son0Dist - 7929.0;
-                son0Dist = son0Dist / 14986.0;
+//                float son0Dist = ((float) rec) * 10000.0;
+//                son0Dist = son0Dist - 7929.0;
+//                son0Dist = son0Dist / 14986.0;
+                float son0Dist = ((float) rec) * 125.0;
+                son0Dist = son0Dist - 2682.0;
+                son0Dist = son0Dist * .0041951;
                 unsigned short son0Out = ((unsigned short) son0Dist);
 
 
@@ -218,7 +221,7 @@ void MAPPING_Tasks(void) {
                 
                 char gridOut[RECEIVE_BUFFER_SIZE];
                 
-                sprintf(gridOut, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                sprintf(gridOut, "*%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x~",
                         mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[1][ 1 ], mappingData.OCCUPANCY_GRID[1][ 2 ],
                         mappingData.OCCUPANCY_GRID[1][ 3 ], mappingData.OCCUPANCY_GRID[1][ 4 ], mappingData.OCCUPANCY_GRID[1][ 5 ],
                         mappingData.OCCUPANCY_GRID[1][ 6 ], mappingData.OCCUPANCY_GRID[1][ 7 ], mappingData.OCCUPANCY_GRID[1][ 8 ],
@@ -253,15 +256,10 @@ void MAPPING_Tasks(void) {
                         mappingData.OCCUPANCY_GRID[1][ 93 ], mappingData.OCCUPANCY_GRID[1][ 94 ], mappingData.OCCUPANCY_GRID[1][ 95 ],
                         mappingData.OCCUPANCY_GRID[1][ 96]);
                 
+//                sprintf(gridOut, "US value=%d   %d",son0Out, rec);
 //                commSendMsgToSendQueue(gridOut);
                 
-                
-                char testOut[RECEIVE_BUFFER_SIZE];
-                
-                sprintf(testOut,"ULTRA WORKS\n\r");
-                commSendMsgToSendQueue(testOut);        
-                
-                
+                                
             } else if (msgId == MAP_IR_2_ID) {
                 //Handle input from the first IR sensor
                 short rec = 0;
@@ -270,8 +268,11 @@ void MAPPING_Tasks(void) {
 
 
                 unsigned short ir0Out = 0;
-                float ir0Numer = 7501.53;
-                float ir0Exp = 1000.0 / 1009.0;
+//                float ir0Numer = 7501.53;
+//                float ir0Exp = 1000.0 / 1009.0;
+//                float ir0Denom = powf(((float) rec), ir0Exp);
+                float ir0Numer = 2697.74;
+                float ir0Exp = 1000.0 / 1167.0;
                 float ir0Denom = powf(((float) rec), ir0Exp);
                 ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
                 
@@ -286,49 +287,45 @@ void MAPPING_Tasks(void) {
 
                 char gridOut[RECEIVE_BUFFER_SIZE];
                 int iOMG;
-//                for (int i = 0)
-                sprintf(gridOut, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-                        mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[0][ 1 ], mappingData.OCCUPANCY_GRID[0][ 2 ],
-                        mappingData.OCCUPANCY_GRID[0][ 3 ], mappingData.OCCUPANCY_GRID[0][ 4 ], mappingData.OCCUPANCY_GRID[0][ 5 ],
-                        mappingData.OCCUPANCY_GRID[0][ 6 ], mappingData.OCCUPANCY_GRID[0][ 7 ], mappingData.OCCUPANCY_GRID[0][ 8 ],
-                        mappingData.OCCUPANCY_GRID[0][ 9 ], mappingData.OCCUPANCY_GRID[0][ 10 ], mappingData.OCCUPANCY_GRID[0][ 11 ],
-                        mappingData.OCCUPANCY_GRID[0][ 12 ], mappingData.OCCUPANCY_GRID[0][ 13 ], mappingData.OCCUPANCY_GRID[0][ 14 ],
-                        mappingData.OCCUPANCY_GRID[0][ 15 ], mappingData.OCCUPANCY_GRID[0][ 16 ], mappingData.OCCUPANCY_GRID[0][ 17 ],
-                        mappingData.OCCUPANCY_GRID[0][ 18 ], mappingData.OCCUPANCY_GRID[0][ 19 ], mappingData.OCCUPANCY_GRID[0][ 20 ],
-                        mappingData.OCCUPANCY_GRID[0][ 21 ], mappingData.OCCUPANCY_GRID[0][ 22 ], mappingData.OCCUPANCY_GRID[0][ 23 ],
-                        mappingData.OCCUPANCY_GRID[0][ 24 ], mappingData.OCCUPANCY_GRID[0][ 25 ], mappingData.OCCUPANCY_GRID[0][ 26 ],
-                        mappingData.OCCUPANCY_GRID[0][ 27 ], mappingData.OCCUPANCY_GRID[0][ 28 ], mappingData.OCCUPANCY_GRID[0][ 29 ],
-                        mappingData.OCCUPANCY_GRID[0][ 30 ], mappingData.OCCUPANCY_GRID[0][ 31 ], mappingData.OCCUPANCY_GRID[0][ 32 ],
-                        mappingData.OCCUPANCY_GRID[0][ 33 ], mappingData.OCCUPANCY_GRID[0][ 34 ], mappingData.OCCUPANCY_GRID[0][ 35 ],
-                        mappingData.OCCUPANCY_GRID[0][ 36 ], mappingData.OCCUPANCY_GRID[0][ 37 ], mappingData.OCCUPANCY_GRID[0][ 38 ],
-                        mappingData.OCCUPANCY_GRID[0][ 39 ], mappingData.OCCUPANCY_GRID[0][ 40 ], mappingData.OCCUPANCY_GRID[0][ 41 ],
-                        mappingData.OCCUPANCY_GRID[0][ 42 ], mappingData.OCCUPANCY_GRID[0][ 43 ], mappingData.OCCUPANCY_GRID[0][ 44 ],
-                        mappingData.OCCUPANCY_GRID[0][ 45 ], mappingData.OCCUPANCY_GRID[0][ 46 ], mappingData.OCCUPANCY_GRID[0][ 47 ],
-                        mappingData.OCCUPANCY_GRID[0][ 48 ], mappingData.OCCUPANCY_GRID[0][ 49 ], mappingData.OCCUPANCY_GRID[0][ 50 ],
-                        mappingData.OCCUPANCY_GRID[0][ 51 ], mappingData.OCCUPANCY_GRID[0][ 52 ], mappingData.OCCUPANCY_GRID[0][ 53 ],
-                        mappingData.OCCUPANCY_GRID[0][ 54 ], mappingData.OCCUPANCY_GRID[0][ 55 ], mappingData.OCCUPANCY_GRID[0][ 56 ],
-                        mappingData.OCCUPANCY_GRID[0][ 57 ], mappingData.OCCUPANCY_GRID[0][ 58 ], mappingData.OCCUPANCY_GRID[0][ 59 ],
-                        mappingData.OCCUPANCY_GRID[0][ 60 ], mappingData.OCCUPANCY_GRID[0][ 61 ], mappingData.OCCUPANCY_GRID[0][ 62 ],
-                        mappingData.OCCUPANCY_GRID[0][ 63 ], mappingData.OCCUPANCY_GRID[0][ 64 ], mappingData.OCCUPANCY_GRID[0][ 65 ],
-                        mappingData.OCCUPANCY_GRID[0][ 66 ], mappingData.OCCUPANCY_GRID[0][ 67 ], mappingData.OCCUPANCY_GRID[0][ 68 ],
-                        mappingData.OCCUPANCY_GRID[0][ 69 ], mappingData.OCCUPANCY_GRID[0][ 70 ], mappingData.OCCUPANCY_GRID[0][ 71 ],
-                        mappingData.OCCUPANCY_GRID[0][ 72 ], mappingData.OCCUPANCY_GRID[0][ 73 ], mappingData.OCCUPANCY_GRID[0][ 74 ],
-                        mappingData.OCCUPANCY_GRID[0][ 75 ], mappingData.OCCUPANCY_GRID[0][ 76 ], mappingData.OCCUPANCY_GRID[0][ 77 ],
-                        mappingData.OCCUPANCY_GRID[0][ 78 ], mappingData.OCCUPANCY_GRID[0][ 79 ], mappingData.OCCUPANCY_GRID[0][ 80 ],
-                        mappingData.OCCUPANCY_GRID[0][ 81 ], mappingData.OCCUPANCY_GRID[0][ 82 ], mappingData.OCCUPANCY_GRID[0][ 83 ],
-                        mappingData.OCCUPANCY_GRID[0][ 84 ], mappingData.OCCUPANCY_GRID[0][ 85 ], mappingData.OCCUPANCY_GRID[0][ 86 ],
-                        mappingData.OCCUPANCY_GRID[0][ 87 ], mappingData.OCCUPANCY_GRID[0][ 88 ], mappingData.OCCUPANCY_GRID[0][ 89 ],
-                        mappingData.OCCUPANCY_GRID[0][ 90 ], mappingData.OCCUPANCY_GRID[0][ 91 ], mappingData.OCCUPANCY_GRID[0][ 92 ],
-                        mappingData.OCCUPANCY_GRID[0][ 93 ], mappingData.OCCUPANCY_GRID[0][ 94 ], mappingData.OCCUPANCY_GRID[0][ 95 ],
-                        mappingData.OCCUPANCY_GRID[0][ 96]);
-//                commSendMsgToSendQueue(gridOut);
+//                for (int i = 0; i < ) {
+                    sprintf(gridOut, "*%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x~",
+                            mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[0][ 1 ], mappingData.OCCUPANCY_GRID[0][ 2 ],
+                            mappingData.OCCUPANCY_GRID[0][ 3 ], mappingData.OCCUPANCY_GRID[0][ 4 ], mappingData.OCCUPANCY_GRID[0][ 5 ],
+                            mappingData.OCCUPANCY_GRID[0][ 6 ], mappingData.OCCUPANCY_GRID[0][ 7 ], mappingData.OCCUPANCY_GRID[0][ 8 ],
+                            mappingData.OCCUPANCY_GRID[0][ 9 ], mappingData.OCCUPANCY_GRID[0][ 10 ], mappingData.OCCUPANCY_GRID[0][ 11 ],
+                            mappingData.OCCUPANCY_GRID[0][ 12 ], mappingData.OCCUPANCY_GRID[0][ 13 ], mappingData.OCCUPANCY_GRID[0][ 14 ],
+                            mappingData.OCCUPANCY_GRID[0][ 15 ], mappingData.OCCUPANCY_GRID[0][ 16 ], mappingData.OCCUPANCY_GRID[0][ 17 ],
+                            mappingData.OCCUPANCY_GRID[0][ 18 ], mappingData.OCCUPANCY_GRID[0][ 19 ], mappingData.OCCUPANCY_GRID[0][ 20 ],
+                            mappingData.OCCUPANCY_GRID[0][ 21 ], mappingData.OCCUPANCY_GRID[0][ 22 ], mappingData.OCCUPANCY_GRID[0][ 23 ],
+                            mappingData.OCCUPANCY_GRID[0][ 24 ], mappingData.OCCUPANCY_GRID[0][ 25 ], mappingData.OCCUPANCY_GRID[0][ 26 ],
+                            mappingData.OCCUPANCY_GRID[0][ 27 ], mappingData.OCCUPANCY_GRID[0][ 28 ], mappingData.OCCUPANCY_GRID[0][ 29 ],
+                            mappingData.OCCUPANCY_GRID[0][ 30 ], mappingData.OCCUPANCY_GRID[0][ 31 ], mappingData.OCCUPANCY_GRID[0][ 32 ],
+                            mappingData.OCCUPANCY_GRID[0][ 33 ], mappingData.OCCUPANCY_GRID[0][ 34 ], mappingData.OCCUPANCY_GRID[0][ 35 ],
+                            mappingData.OCCUPANCY_GRID[0][ 36 ], mappingData.OCCUPANCY_GRID[0][ 37 ], mappingData.OCCUPANCY_GRID[0][ 38 ],
+                            mappingData.OCCUPANCY_GRID[0][ 39 ], mappingData.OCCUPANCY_GRID[0][ 40 ], mappingData.OCCUPANCY_GRID[0][ 41 ],
+                            mappingData.OCCUPANCY_GRID[0][ 42 ], mappingData.OCCUPANCY_GRID[0][ 43 ], mappingData.OCCUPANCY_GRID[0][ 44 ],
+                            mappingData.OCCUPANCY_GRID[0][ 45 ], mappingData.OCCUPANCY_GRID[0][ 46 ], mappingData.OCCUPANCY_GRID[0][ 47 ],
+                            mappingData.OCCUPANCY_GRID[0][ 48 ], mappingData.OCCUPANCY_GRID[0][ 49 ], mappingData.OCCUPANCY_GRID[0][ 50 ],
+                            mappingData.OCCUPANCY_GRID[0][ 51 ], mappingData.OCCUPANCY_GRID[0][ 52 ], mappingData.OCCUPANCY_GRID[0][ 53 ],
+                            mappingData.OCCUPANCY_GRID[0][ 54 ], mappingData.OCCUPANCY_GRID[0][ 55 ], mappingData.OCCUPANCY_GRID[0][ 56 ],
+                            mappingData.OCCUPANCY_GRID[0][ 57 ], mappingData.OCCUPANCY_GRID[0][ 58 ], mappingData.OCCUPANCY_GRID[0][ 59 ],
+                            mappingData.OCCUPANCY_GRID[0][ 60 ], mappingData.OCCUPANCY_GRID[0][ 61 ], mappingData.OCCUPANCY_GRID[0][ 62 ],
+                            mappingData.OCCUPANCY_GRID[0][ 63 ], mappingData.OCCUPANCY_GRID[0][ 64 ], mappingData.OCCUPANCY_GRID[0][ 65 ],
+                            mappingData.OCCUPANCY_GRID[0][ 66 ], mappingData.OCCUPANCY_GRID[0][ 67 ], mappingData.OCCUPANCY_GRID[0][ 68 ],
+                            mappingData.OCCUPANCY_GRID[0][ 69 ], mappingData.OCCUPANCY_GRID[0][ 70 ], mappingData.OCCUPANCY_GRID[0][ 71 ],
+                            mappingData.OCCUPANCY_GRID[0][ 72 ], mappingData.OCCUPANCY_GRID[0][ 73 ], mappingData.OCCUPANCY_GRID[0][ 74 ],
+                            mappingData.OCCUPANCY_GRID[0][ 75 ], mappingData.OCCUPANCY_GRID[0][ 76 ], mappingData.OCCUPANCY_GRID[0][ 77 ],
+                            mappingData.OCCUPANCY_GRID[0][ 78 ], mappingData.OCCUPANCY_GRID[0][ 79 ], mappingData.OCCUPANCY_GRID[0][ 80 ],
+                            mappingData.OCCUPANCY_GRID[0][ 81 ], mappingData.OCCUPANCY_GRID[0][ 82 ], mappingData.OCCUPANCY_GRID[0][ 83 ],
+                            mappingData.OCCUPANCY_GRID[0][ 84 ], mappingData.OCCUPANCY_GRID[0][ 85 ], mappingData.OCCUPANCY_GRID[0][ 86 ],
+                            mappingData.OCCUPANCY_GRID[0][ 87 ], mappingData.OCCUPANCY_GRID[0][ 88 ], mappingData.OCCUPANCY_GRID[0][ 89 ],
+                            mappingData.OCCUPANCY_GRID[0][ 90 ], mappingData.OCCUPANCY_GRID[0][ 91 ], mappingData.OCCUPANCY_GRID[0][ 92 ],
+                            mappingData.OCCUPANCY_GRID[0][ 93 ], mappingData.OCCUPANCY_GRID[0][ 94 ], mappingData.OCCUPANCY_GRID[0][ 95 ],
+                            mappingData.OCCUPANCY_GRID[0][ 96]);
                 
-                char testOut[RECEIVE_BUFFER_SIZE];
-                
-                sprintf(testOut,"IR WORKS\n\r");
-                commSendMsgToSendQueue(testOut);
-
-                            
+//                    commSendMsgToSendQueue(gridOut);
+//                }
+                                            
             } 
             else if (msgId == MAP_MAPPING_TIMER_ID) {
                 //Start sampling
