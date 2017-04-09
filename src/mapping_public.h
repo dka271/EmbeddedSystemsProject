@@ -52,6 +52,8 @@ extern "C" {
 #define MAP_OCCUPANCY_COLUMNS 97
 #define MAP_OBJECT_THRESHOLD 200
 #define MAP_ROVER_THRESHOLD 200
+#define MAP_OBSTACLE_BITMASK 0x7ff
+
     
 unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]);
     

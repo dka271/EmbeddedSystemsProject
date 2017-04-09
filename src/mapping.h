@@ -129,7 +129,9 @@ typedef struct
 
     /* TODO: Define any additional data used by the application. */
 //    short OCCUPANCY_GRID[MAP_OCCUPANCY_ROWS][MAP_OCCUPANCY_COLUMNS];
-        short OCCUPANCY_GRID[30][MAP_OCCUPANCY_COLUMNS];
+// maybe change to a 1D array
+    short OCCUPANCY_GRID[MAP_OCCUPANCY_ROWS][MAP_OCCUPANCY_COLUMNS];
+//    unsigned char FLOOD_FILL_PAINT[MAP_OCCUPANCY_ROWS][MAP_OCCUPANCY_COLUMNS];
     short rover_y_pos;
 
 } MAPPING_DATA;

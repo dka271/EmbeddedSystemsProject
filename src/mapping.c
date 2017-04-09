@@ -93,6 +93,89 @@ unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]) {
     return sum;
 }
 
+// get the probability of a rover at a given occupancy grid index
+// use only the 7 least significant bits of the return char
+unsigned char getRoverVal(short rowIndex, short columnIndex) {
+    int tempVal = mappingData.OCCUPANCY_GRID[rowIndex][columnIndex];
+    return (tempVal >> (short)8) & 0x7f;
+}
+
+//get the probability of an obstacle at a given occupancy grid index
+// all of the return char is relevant
+unsigned char getObstacleVal(short rowIndex, short columnIndex) {
+    short tempVal = mappingData.OCCUPANCY_GRID[rowIndex][columnIndex];
+    return (unsigned char)((tempVal) & 0x00ff);
+}
+
+//get whether grid space has been traversed. For use only by the floodfill and object creation functions
+// use only the least significant bit of the return char
+unsigned char getPaintVal(short rowIndex, short columnIndex) {
+    short tempVal = mappingData.OCCUPANCY_GRID[rowIndex][columnIndex];
+    return (tempVal >> (short)15);
+}
+
+void incrementObstacleVal(short rowIndex, short columnIndex, short inc) {
+    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += inc;
+}
+
+void incrementRoverVal(short rowIndex, short columnIndex, short inc) {
+    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) < 250)
+    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += (inc<<8);
+}
+
+void decrementRoverVal(short rowIndex, short columnIndex, short dec) {
+    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) > 5)
+        mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] -= (dec<<8);
+}
+
+
+//currently checks ONLY for obstacles
+/*
+void floodFillCore(short r, short c, short currColor) {
+    if (mappingData.OCCUPANCY_GRID[r][c] & MAP_OBSTACLE_BITMASK > MAP_OBJECT_THRESHOLD              //threshold calculation to detect an obstacle
+            && mappingData.FLOOD_FILL_PAINT[r][c] == 0) {                                                     //make sure you haven't traversed this cell before
+        mappingData.FLOOD_FILL_PAINT[r][c] = currColor;
+        
+        if (r < 126)
+            floodFillCore(r+1, c, currColor);
+        
+        if (r > 1)
+            floodFillCore(r-1, c, currColor);
+        
+        if (c < 96)
+            floodFillCore(r, c+1, currColor);
+        
+        if (c > 1)
+            floodFillCore(r, c-1, currColor);
+    }
+    // This case my not provide any optimization at all
+    // else if (occupancyGrid[r][c] & obstacleBitmask < obstacleThreshold
+            // && paint[r][c] == 0) {                                    // since this cell is not an obstacle, we can mark it as traversed
+        // paint[r][c] = 0b11111111;
+    // }
+    else {
+        // the current cell (occupancyGrid[r][c]) is painted some color already, either currColor or something else
+        // so we do fuck all
+        return;
+    }
+}
+
+void floodFillParser() {
+    int c, r;
+    short currColor = 1;        //could be a byte, start at 1, 0=non-obstacle(background) cell
+    for (c = 0; c < 97; ++c) {
+        for (r = 0; r < 127; ++r) {
+            floodFillCore((short)r,(short)c, currColor);
+            
+            //now try to template match while the current color is completed
+            //templateMatch(r,c,currColor)
+            
+            //move on to the next color
+            currColor += 1;
+        }
+    }
+}*/
+
 /******************************************************************************
   Function:
     void MAPPING_Tasks ( void )
@@ -153,7 +236,7 @@ void MAPPING_Tasks(void) {
                 
                 
                 
-            } else if (msgId == MAP_ULTRASONIC_ID) {
+            } else if (msgId == MAP_ULTRASONIC_ID && 0) {
 
 
 //                if (MS3DEMO) {
@@ -172,7 +255,7 @@ void MAPPING_Tasks(void) {
 
 //                }
                 
-                float spreadAngle = M_PI/6.0;         // this is in radians
+                float spreadAngle = 0.4522*2;         // this is in radians, total spread of US sensor
                 // Each cell along the arc with radius son0Out must be incremented
                 // To map this to the occupancy grid, it is necessary to find each of the relevant cells
                 // The bounds and center line are easy because we have the angle of spread
@@ -195,7 +278,7 @@ void MAPPING_Tasks(void) {
                 
                 short currR = prevR;
                 short currC = prevC;
-                mappingData.OCCUPANCY_GRID[currR][currC] += 1;
+                incrementObstacleVal(currR, currC, 1);
 //                mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][son0Out] += 1;
 
                 short iFillArc;
@@ -205,13 +288,15 @@ void MAPPING_Tasks(void) {
                     currC = (short)(cos( (spreadAngle / (float)2)- angIncrement*(float)iFillArc) * (float)son0Out) / 2.0;
 //                    currC = (short)(cos(spreadAngle-angIncrement*(float)iFillArc) / 2) / 2;
 
-                    if (currR < 0) currR = 0;
-                    if (currC < 0) currC = 0;
+//                    if (currR < 0) currR = 0;
+//                    if (currC < 0) currC = 0;
                     
                     //check if current cell is different from the previous cell
                     if (currR != prevR || currC != prevC) {
                         // increment existence probability
-                        mappingData.OCCUPANCY_GRID[currR][currC] += 1;
+                        if ( currR >= 0 && currC >= 0) {
+                            incrementObstacleVal(currR, currC, 1);
+                        }
                         //decrement every cell in front of the arc
                             //TODO
                     }
@@ -219,45 +304,84 @@ void MAPPING_Tasks(void) {
                     prevC = currC;
                 }
                 
-                char gridOut[RECEIVE_BUFFER_SIZE];
-                
-                sprintf(gridOut, "*%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x~",
-                        mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[1][ 1 ], mappingData.OCCUPANCY_GRID[1][ 2 ],
-                        mappingData.OCCUPANCY_GRID[1][ 3 ], mappingData.OCCUPANCY_GRID[1][ 4 ], mappingData.OCCUPANCY_GRID[1][ 5 ],
-                        mappingData.OCCUPANCY_GRID[1][ 6 ], mappingData.OCCUPANCY_GRID[1][ 7 ], mappingData.OCCUPANCY_GRID[1][ 8 ],
-                        mappingData.OCCUPANCY_GRID[1][ 9 ], mappingData.OCCUPANCY_GRID[1][ 10 ], mappingData.OCCUPANCY_GRID[1][ 11 ],
-                        mappingData.OCCUPANCY_GRID[1][ 12 ], mappingData.OCCUPANCY_GRID[1][ 13 ], mappingData.OCCUPANCY_GRID[1][ 14 ],
-                        mappingData.OCCUPANCY_GRID[1][ 15 ], mappingData.OCCUPANCY_GRID[1][ 16 ], mappingData.OCCUPANCY_GRID[1][ 17 ],
-                        mappingData.OCCUPANCY_GRID[1][ 18 ], mappingData.OCCUPANCY_GRID[1][ 19 ], mappingData.OCCUPANCY_GRID[1][ 20 ],
-                        mappingData.OCCUPANCY_GRID[1][ 21 ], mappingData.OCCUPANCY_GRID[1][ 22 ], mappingData.OCCUPANCY_GRID[1][ 23 ],
-                        mappingData.OCCUPANCY_GRID[1][ 24 ], mappingData.OCCUPANCY_GRID[1][ 25 ], mappingData.OCCUPANCY_GRID[1][ 26 ],
-                        mappingData.OCCUPANCY_GRID[1][ 27 ], mappingData.OCCUPANCY_GRID[1][ 28 ], mappingData.OCCUPANCY_GRID[1][ 29 ],
-                        mappingData.OCCUPANCY_GRID[1][ 30 ], mappingData.OCCUPANCY_GRID[1][ 31 ], mappingData.OCCUPANCY_GRID[1][ 32 ],
-                        mappingData.OCCUPANCY_GRID[1][ 33 ], mappingData.OCCUPANCY_GRID[1][ 34 ], mappingData.OCCUPANCY_GRID[1][ 35 ],
-                        mappingData.OCCUPANCY_GRID[1][ 36 ], mappingData.OCCUPANCY_GRID[1][ 37 ], mappingData.OCCUPANCY_GRID[1][ 38 ],
-                        mappingData.OCCUPANCY_GRID[1][ 39 ], mappingData.OCCUPANCY_GRID[1][ 40 ], mappingData.OCCUPANCY_GRID[1][ 41 ],
-                        mappingData.OCCUPANCY_GRID[1][ 42 ], mappingData.OCCUPANCY_GRID[1][ 43 ], mappingData.OCCUPANCY_GRID[1][ 44 ],
-                        mappingData.OCCUPANCY_GRID[1][ 45 ], mappingData.OCCUPANCY_GRID[1][ 46 ], mappingData.OCCUPANCY_GRID[1][ 47 ],
-                        mappingData.OCCUPANCY_GRID[1][ 48 ], mappingData.OCCUPANCY_GRID[1][ 49 ], mappingData.OCCUPANCY_GRID[1][ 50 ],
-                        mappingData.OCCUPANCY_GRID[1][ 51 ], mappingData.OCCUPANCY_GRID[1][ 52 ], mappingData.OCCUPANCY_GRID[1][ 53 ],
-                        mappingData.OCCUPANCY_GRID[1][ 54 ], mappingData.OCCUPANCY_GRID[1][ 55 ], mappingData.OCCUPANCY_GRID[1][ 56 ],
-                        mappingData.OCCUPANCY_GRID[1][ 57 ], mappingData.OCCUPANCY_GRID[1][ 58 ], mappingData.OCCUPANCY_GRID[1][ 59 ],
-                        mappingData.OCCUPANCY_GRID[1][ 60 ], mappingData.OCCUPANCY_GRID[1][ 61 ], mappingData.OCCUPANCY_GRID[1][ 62 ],
-                        mappingData.OCCUPANCY_GRID[1][ 63 ], mappingData.OCCUPANCY_GRID[1][ 64 ], mappingData.OCCUPANCY_GRID[1][ 65 ],
-                        mappingData.OCCUPANCY_GRID[1][ 66 ], mappingData.OCCUPANCY_GRID[1][ 67 ], mappingData.OCCUPANCY_GRID[1][ 68 ],
-                        mappingData.OCCUPANCY_GRID[1][ 69 ], mappingData.OCCUPANCY_GRID[1][ 70 ], mappingData.OCCUPANCY_GRID[1][ 71 ],
-                        mappingData.OCCUPANCY_GRID[1][ 72 ], mappingData.OCCUPANCY_GRID[1][ 73 ], mappingData.OCCUPANCY_GRID[1][ 74 ],
-                        mappingData.OCCUPANCY_GRID[1][ 75 ], mappingData.OCCUPANCY_GRID[1][ 76 ], mappingData.OCCUPANCY_GRID[1][ 77 ],
-                        mappingData.OCCUPANCY_GRID[1][ 78 ], mappingData.OCCUPANCY_GRID[1][ 79 ], mappingData.OCCUPANCY_GRID[1][ 80 ],
-                        mappingData.OCCUPANCY_GRID[1][ 81 ], mappingData.OCCUPANCY_GRID[1][ 82 ], mappingData.OCCUPANCY_GRID[1][ 83 ],
-                        mappingData.OCCUPANCY_GRID[1][ 84 ], mappingData.OCCUPANCY_GRID[1][ 85 ], mappingData.OCCUPANCY_GRID[1][ 86 ],
-                        mappingData.OCCUPANCY_GRID[1][ 87 ], mappingData.OCCUPANCY_GRID[1][ 88 ], mappingData.OCCUPANCY_GRID[1][ 89 ],
-                        mappingData.OCCUPANCY_GRID[1][ 90 ], mappingData.OCCUPANCY_GRID[1][ 91 ], mappingData.OCCUPANCY_GRID[1][ 92 ],
-                        mappingData.OCCUPANCY_GRID[1][ 93 ], mappingData.OCCUPANCY_GRID[1][ 94 ], mappingData.OCCUPANCY_GRID[1][ 95 ],
-                        mappingData.OCCUPANCY_GRID[1][ 96]);
-                
-//                sprintf(gridOut, "US value=%d   %d",son0Out, rec);
-//                commSendMsgToSendQueue(gridOut);
+//                char gridOut[RECEIVE_BUFFER_SIZE];
+//                int iOMG, i2;
+//                for (iOMG = 0; iOMG < MAP_OCCUPANCY_ROWS; ++iOMG) {
+//                    sprintf(gridOut, "*%03d:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x~", iOMG,
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 0 ], mappingData.OCCUPANCY_GRID[iOMG][ 1 ], mappingData.OCCUPANCY_GRID[iOMG][ 2 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 3 ], mappingData.OCCUPANCY_GRID[iOMG][ 4 ], mappingData.OCCUPANCY_GRID[iOMG][ 5 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 6 ], mappingData.OCCUPANCY_GRID[iOMG][ 7 ], mappingData.OCCUPANCY_GRID[iOMG][ 8 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 9 ], mappingData.OCCUPANCY_GRID[iOMG][ 10 ], mappingData.OCCUPANCY_GRID[iOMG][ 11 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 12 ], mappingData.OCCUPANCY_GRID[iOMG][ 13 ], mappingData.OCCUPANCY_GRID[iOMG][ 14 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 15 ], mappingData.OCCUPANCY_GRID[iOMG][ 16 ], mappingData.OCCUPANCY_GRID[iOMG][ 17 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 18 ], mappingData.OCCUPANCY_GRID[iOMG][ 19 ], mappingData.OCCUPANCY_GRID[iOMG][ 20 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 21 ], mappingData.OCCUPANCY_GRID[iOMG][ 22 ], mappingData.OCCUPANCY_GRID[iOMG][ 23 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 24 ], mappingData.OCCUPANCY_GRID[iOMG][ 25 ], mappingData.OCCUPANCY_GRID[iOMG][ 26 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 27 ], mappingData.OCCUPANCY_GRID[iOMG][ 28 ], mappingData.OCCUPANCY_GRID[iOMG][ 29 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 30 ], mappingData.OCCUPANCY_GRID[iOMG][ 31 ], mappingData.OCCUPANCY_GRID[iOMG][ 32 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 33 ], mappingData.OCCUPANCY_GRID[iOMG][ 34 ], mappingData.OCCUPANCY_GRID[iOMG][ 35 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 36 ], mappingData.OCCUPANCY_GRID[iOMG][ 37 ], mappingData.OCCUPANCY_GRID[iOMG][ 38 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 39 ], mappingData.OCCUPANCY_GRID[iOMG][ 40 ], mappingData.OCCUPANCY_GRID[iOMG][ 41 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 42 ], mappingData.OCCUPANCY_GRID[iOMG][ 43 ], mappingData.OCCUPANCY_GRID[iOMG][ 44 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 45 ], mappingData.OCCUPANCY_GRID[iOMG][ 46 ], mappingData.OCCUPANCY_GRID[iOMG][ 47 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 48 ], mappingData.OCCUPANCY_GRID[iOMG][ 49 ], mappingData.OCCUPANCY_GRID[iOMG][ 50 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 51 ], mappingData.OCCUPANCY_GRID[iOMG][ 52 ], mappingData.OCCUPANCY_GRID[iOMG][ 53 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 54 ], mappingData.OCCUPANCY_GRID[iOMG][ 55 ], mappingData.OCCUPANCY_GRID[iOMG][ 56 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 57 ], mappingData.OCCUPANCY_GRID[iOMG][ 58 ], mappingData.OCCUPANCY_GRID[iOMG][ 59 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 60 ], mappingData.OCCUPANCY_GRID[iOMG][ 61 ], mappingData.OCCUPANCY_GRID[iOMG][ 62 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 63 ], mappingData.OCCUPANCY_GRID[iOMG][ 64 ], mappingData.OCCUPANCY_GRID[iOMG][ 65 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 66 ], mappingData.OCCUPANCY_GRID[iOMG][ 67 ], mappingData.OCCUPANCY_GRID[iOMG][ 68 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 69 ], mappingData.OCCUPANCY_GRID[iOMG][ 70 ], mappingData.OCCUPANCY_GRID[iOMG][ 71 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 72 ], mappingData.OCCUPANCY_GRID[iOMG][ 73 ], mappingData.OCCUPANCY_GRID[iOMG][ 74 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 75 ], mappingData.OCCUPANCY_GRID[iOMG][ 76 ], mappingData.OCCUPANCY_GRID[iOMG][ 77 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 78 ], mappingData.OCCUPANCY_GRID[iOMG][ 79 ], mappingData.OCCUPANCY_GRID[iOMG][ 80 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 81 ], mappingData.OCCUPANCY_GRID[iOMG][ 82 ], mappingData.OCCUPANCY_GRID[iOMG][ 83 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 84 ], mappingData.OCCUPANCY_GRID[iOMG][ 85 ], mappingData.OCCUPANCY_GRID[iOMG][ 86 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 87 ], mappingData.OCCUPANCY_GRID[iOMG][ 88 ], mappingData.OCCUPANCY_GRID[iOMG][ 89 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 90 ], mappingData.OCCUPANCY_GRID[iOMG][ 91 ], mappingData.OCCUPANCY_GRID[iOMG][ 92 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 93 ], mappingData.OCCUPANCY_GRID[iOMG][ 94 ], mappingData.OCCUPANCY_GRID[iOMG][ 95 ],
+//                            mappingData.OCCUPANCY_GRID[iOMG][ 96]);
+
+//                    sprintf(gridOut, "*%03d :%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X~", iOMG,
+//                            getObstacleVal(iOMG, 0 ), getObstacleVal(iOMG, 1 ), getObstacleVal(iOMG, 2 ),
+//                            getObstacleVal(iOMG, 3 ), getObstacleVal(iOMG, 4 ), getObstacleVal(iOMG, 5 ),
+//                            getObstacleVal(iOMG, 6 ), getObstacleVal(iOMG, 7 ), getObstacleVal(iOMG, 8 ),
+//                            getObstacleVal(iOMG, 9 ), getObstacleVal(iOMG, 10 ), getObstacleVal(iOMG, 11 ),
+//                            getObstacleVal(iOMG, 12 ), getObstacleVal(iOMG, 13 ), getObstacleVal(iOMG, 14 ),
+//                            getObstacleVal(iOMG, 15 ), getObstacleVal(iOMG, 16 ), getObstacleVal(iOMG, 17 ),
+//                            getObstacleVal(iOMG, 18 ), getObstacleVal(iOMG, 19 ), getObstacleVal(iOMG, 20 ),
+//                            getObstacleVal(iOMG, 21 ), getObstacleVal(iOMG, 22 ), getObstacleVal(iOMG, 23 ),
+//                            getObstacleVal(iOMG, 24 ), getObstacleVal(iOMG, 25 ), getObstacleVal(iOMG, 26 ),
+//                            getObstacleVal(iOMG, 27 ), getObstacleVal(iOMG, 28 ), getObstacleVal(iOMG, 29 ),
+//                            getObstacleVal(iOMG, 30 ), getObstacleVal(iOMG, 31 ), getObstacleVal(iOMG, 32 ),
+//                            getObstacleVal(iOMG, 33 ), getObstacleVal(iOMG, 34 ), getObstacleVal(iOMG, 35 ),
+//                            getObstacleVal(iOMG, 36 ), getObstacleVal(iOMG, 37 ), getObstacleVal(iOMG, 38 ),
+//                            getObstacleVal(iOMG, 39 ), getObstacleVal(iOMG, 40 ), getObstacleVal(iOMG, 41 ),
+//                            getObstacleVal(iOMG, 42 ), getObstacleVal(iOMG, 43 ), getObstacleVal(iOMG, 44 ),
+//                            getObstacleVal(iOMG, 45 ), getObstacleVal(iOMG, 46 ), getObstacleVal(iOMG, 47 ),
+//                            getObstacleVal(iOMG, 48 ), getObstacleVal(iOMG, 49 ), getObstacleVal(iOMG, 50 ),
+//                            getObstacleVal(iOMG, 51 ), getObstacleVal(iOMG, 52 ), getObstacleVal(iOMG, 53 ),
+//                            getObstacleVal(iOMG, 54 ), getObstacleVal(iOMG, 55 ), getObstacleVal(iOMG, 56 ),
+//                            getObstacleVal(iOMG, 57 ), getObstacleVal(iOMG, 58 ), getObstacleVal(iOMG, 59 ),
+//                            getObstacleVal(iOMG, 60 ), getObstacleVal(iOMG, 61 ), getObstacleVal(iOMG, 62 ),
+//                            getObstacleVal(iOMG, 63 ), getObstacleVal(iOMG, 64 ), getObstacleVal(iOMG, 65 ),
+//                            getObstacleVal(iOMG, 66 ), getObstacleVal(iOMG, 67 ), getObstacleVal(iOMG, 68 ),
+//                            getObstacleVal(iOMG, 69 ), getObstacleVal(iOMG, 70 ), getObstacleVal(iOMG, 71 ),
+//                            getObstacleVal(iOMG, 72 ), getObstacleVal(iOMG, 73 ), getObstacleVal(iOMG, 74 ),
+//                            getObstacleVal(iOMG, 75 ), getObstacleVal(iOMG, 76 ), getObstacleVal(iOMG, 77 ),
+//                            getObstacleVal(iOMG, 78 ), getObstacleVal(iOMG, 79 ), getObstacleVal(iOMG, 80 ),
+//                            getObstacleVal(iOMG, 81 ), getObstacleVal(iOMG, 82 ), getObstacleVal(iOMG, 83 ),
+//                            getObstacleVal(iOMG, 84 ), getObstacleVal(iOMG, 85 ), getObstacleVal(iOMG, 86 ),
+//                            getObstacleVal(iOMG, 87 ), getObstacleVal(iOMG, 88 ), getObstacleVal(iOMG, 89 ),
+//                            getObstacleVal(iOMG, 90 ), getObstacleVal(iOMG, 91 ), getObstacleVal(iOMG, 92 ),
+//                            getObstacleVal(iOMG, 93 ), getObstacleVal(iOMG, 94 ), getObstacleVal(iOMG, 95 ),
+//                            getObstacleVal(iOMG, 96));
+                    
+                    
+//                    sprintf(gridOut, "%02x", (unsigned int) (getObstacleVal(0,0) & 0xff));
+                    
+//                    commSendMsgToSendQueue(gridOut);
+//                }
                 
                                 
             } else if (msgId == MAP_IR_2_ID) {
@@ -278,53 +402,53 @@ void MAPPING_Tasks(void) {
                 
                 // update occupancy grid using y position           How much to increment by?
                 if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][ir0Out/2] != 0xffff)
-                    mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][ir0Out/2] += 1;//(5<<8);
+                    incrementRoverVal(mappingData.rover_y_pos/2, ir0Out/2, 5);
                 short i;
                 for (i = 0; i <ir0Out/2; ++i) {                     //ir0Out is divided by 2 because cells are 2cm wide
                     if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][i] != 0)
-                        mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][i] -= 1;//(5<<8);
+                        decrementRoverVal(mappingData.rover_y_pos/2, i, 1);
                 }
 
                 char gridOut[RECEIVE_BUFFER_SIZE];
                 int iOMG;
-//                for (int i = 0; i < ) {
-                    sprintf(gridOut, "*%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x~",
-                            mappingData.OCCUPANCY_GRID[1][ 0 ], mappingData.OCCUPANCY_GRID[0][ 1 ], mappingData.OCCUPANCY_GRID[0][ 2 ],
-                            mappingData.OCCUPANCY_GRID[0][ 3 ], mappingData.OCCUPANCY_GRID[0][ 4 ], mappingData.OCCUPANCY_GRID[0][ 5 ],
-                            mappingData.OCCUPANCY_GRID[0][ 6 ], mappingData.OCCUPANCY_GRID[0][ 7 ], mappingData.OCCUPANCY_GRID[0][ 8 ],
-                            mappingData.OCCUPANCY_GRID[0][ 9 ], mappingData.OCCUPANCY_GRID[0][ 10 ], mappingData.OCCUPANCY_GRID[0][ 11 ],
-                            mappingData.OCCUPANCY_GRID[0][ 12 ], mappingData.OCCUPANCY_GRID[0][ 13 ], mappingData.OCCUPANCY_GRID[0][ 14 ],
-                            mappingData.OCCUPANCY_GRID[0][ 15 ], mappingData.OCCUPANCY_GRID[0][ 16 ], mappingData.OCCUPANCY_GRID[0][ 17 ],
-                            mappingData.OCCUPANCY_GRID[0][ 18 ], mappingData.OCCUPANCY_GRID[0][ 19 ], mappingData.OCCUPANCY_GRID[0][ 20 ],
-                            mappingData.OCCUPANCY_GRID[0][ 21 ], mappingData.OCCUPANCY_GRID[0][ 22 ], mappingData.OCCUPANCY_GRID[0][ 23 ],
-                            mappingData.OCCUPANCY_GRID[0][ 24 ], mappingData.OCCUPANCY_GRID[0][ 25 ], mappingData.OCCUPANCY_GRID[0][ 26 ],
-                            mappingData.OCCUPANCY_GRID[0][ 27 ], mappingData.OCCUPANCY_GRID[0][ 28 ], mappingData.OCCUPANCY_GRID[0][ 29 ],
-                            mappingData.OCCUPANCY_GRID[0][ 30 ], mappingData.OCCUPANCY_GRID[0][ 31 ], mappingData.OCCUPANCY_GRID[0][ 32 ],
-                            mappingData.OCCUPANCY_GRID[0][ 33 ], mappingData.OCCUPANCY_GRID[0][ 34 ], mappingData.OCCUPANCY_GRID[0][ 35 ],
-                            mappingData.OCCUPANCY_GRID[0][ 36 ], mappingData.OCCUPANCY_GRID[0][ 37 ], mappingData.OCCUPANCY_GRID[0][ 38 ],
-                            mappingData.OCCUPANCY_GRID[0][ 39 ], mappingData.OCCUPANCY_GRID[0][ 40 ], mappingData.OCCUPANCY_GRID[0][ 41 ],
-                            mappingData.OCCUPANCY_GRID[0][ 42 ], mappingData.OCCUPANCY_GRID[0][ 43 ], mappingData.OCCUPANCY_GRID[0][ 44 ],
-                            mappingData.OCCUPANCY_GRID[0][ 45 ], mappingData.OCCUPANCY_GRID[0][ 46 ], mappingData.OCCUPANCY_GRID[0][ 47 ],
-                            mappingData.OCCUPANCY_GRID[0][ 48 ], mappingData.OCCUPANCY_GRID[0][ 49 ], mappingData.OCCUPANCY_GRID[0][ 50 ],
-                            mappingData.OCCUPANCY_GRID[0][ 51 ], mappingData.OCCUPANCY_GRID[0][ 52 ], mappingData.OCCUPANCY_GRID[0][ 53 ],
-                            mappingData.OCCUPANCY_GRID[0][ 54 ], mappingData.OCCUPANCY_GRID[0][ 55 ], mappingData.OCCUPANCY_GRID[0][ 56 ],
-                            mappingData.OCCUPANCY_GRID[0][ 57 ], mappingData.OCCUPANCY_GRID[0][ 58 ], mappingData.OCCUPANCY_GRID[0][ 59 ],
-                            mappingData.OCCUPANCY_GRID[0][ 60 ], mappingData.OCCUPANCY_GRID[0][ 61 ], mappingData.OCCUPANCY_GRID[0][ 62 ],
-                            mappingData.OCCUPANCY_GRID[0][ 63 ], mappingData.OCCUPANCY_GRID[0][ 64 ], mappingData.OCCUPANCY_GRID[0][ 65 ],
-                            mappingData.OCCUPANCY_GRID[0][ 66 ], mappingData.OCCUPANCY_GRID[0][ 67 ], mappingData.OCCUPANCY_GRID[0][ 68 ],
-                            mappingData.OCCUPANCY_GRID[0][ 69 ], mappingData.OCCUPANCY_GRID[0][ 70 ], mappingData.OCCUPANCY_GRID[0][ 71 ],
-                            mappingData.OCCUPANCY_GRID[0][ 72 ], mappingData.OCCUPANCY_GRID[0][ 73 ], mappingData.OCCUPANCY_GRID[0][ 74 ],
-                            mappingData.OCCUPANCY_GRID[0][ 75 ], mappingData.OCCUPANCY_GRID[0][ 76 ], mappingData.OCCUPANCY_GRID[0][ 77 ],
-                            mappingData.OCCUPANCY_GRID[0][ 78 ], mappingData.OCCUPANCY_GRID[0][ 79 ], mappingData.OCCUPANCY_GRID[0][ 80 ],
-                            mappingData.OCCUPANCY_GRID[0][ 81 ], mappingData.OCCUPANCY_GRID[0][ 82 ], mappingData.OCCUPANCY_GRID[0][ 83 ],
-                            mappingData.OCCUPANCY_GRID[0][ 84 ], mappingData.OCCUPANCY_GRID[0][ 85 ], mappingData.OCCUPANCY_GRID[0][ 86 ],
-                            mappingData.OCCUPANCY_GRID[0][ 87 ], mappingData.OCCUPANCY_GRID[0][ 88 ], mappingData.OCCUPANCY_GRID[0][ 89 ],
-                            mappingData.OCCUPANCY_GRID[0][ 90 ], mappingData.OCCUPANCY_GRID[0][ 91 ], mappingData.OCCUPANCY_GRID[0][ 92 ],
-                            mappingData.OCCUPANCY_GRID[0][ 93 ], mappingData.OCCUPANCY_GRID[0][ 94 ], mappingData.OCCUPANCY_GRID[0][ 95 ],
-                            mappingData.OCCUPANCY_GRID[0][ 96]);
+                for (iOMG = 0; iOMG < 1; ++iOMG) {
+                    sprintf(gridOut, "*%03d:%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|~", iOMG,
+                            mappingData.OCCUPANCY_GRID[iOMG][ 0 ], mappingData.OCCUPANCY_GRID[iOMG][ 1 ], mappingData.OCCUPANCY_GRID[iOMG][ 2 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 3 ], mappingData.OCCUPANCY_GRID[iOMG][ 4 ], mappingData.OCCUPANCY_GRID[iOMG][ 5 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 6 ], mappingData.OCCUPANCY_GRID[iOMG][ 7 ], mappingData.OCCUPANCY_GRID[iOMG][ 8 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 9 ], mappingData.OCCUPANCY_GRID[iOMG][ 10 ], mappingData.OCCUPANCY_GRID[iOMG][ 11 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 12 ], mappingData.OCCUPANCY_GRID[iOMG][ 13 ], mappingData.OCCUPANCY_GRID[iOMG][ 14 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 15 ], mappingData.OCCUPANCY_GRID[iOMG][ 16 ], mappingData.OCCUPANCY_GRID[iOMG][ 17 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 18 ], mappingData.OCCUPANCY_GRID[iOMG][ 19 ], mappingData.OCCUPANCY_GRID[iOMG][ 20 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 21 ], mappingData.OCCUPANCY_GRID[iOMG][ 22 ], mappingData.OCCUPANCY_GRID[iOMG][ 23 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 24 ], mappingData.OCCUPANCY_GRID[iOMG][ 25 ], mappingData.OCCUPANCY_GRID[iOMG][ 26 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 27 ], mappingData.OCCUPANCY_GRID[iOMG][ 28 ], mappingData.OCCUPANCY_GRID[iOMG][ 29 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 30 ], mappingData.OCCUPANCY_GRID[iOMG][ 31 ], mappingData.OCCUPANCY_GRID[iOMG][ 32 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 33 ], mappingData.OCCUPANCY_GRID[iOMG][ 34 ], mappingData.OCCUPANCY_GRID[iOMG][ 35 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 36 ], mappingData.OCCUPANCY_GRID[iOMG][ 37 ], mappingData.OCCUPANCY_GRID[iOMG][ 38 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 39 ], mappingData.OCCUPANCY_GRID[iOMG][ 40 ], mappingData.OCCUPANCY_GRID[iOMG][ 41 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 42 ], mappingData.OCCUPANCY_GRID[iOMG][ 43 ], mappingData.OCCUPANCY_GRID[iOMG][ 44 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 45 ], mappingData.OCCUPANCY_GRID[iOMG][ 46 ], mappingData.OCCUPANCY_GRID[iOMG][ 47 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 48 ], mappingData.OCCUPANCY_GRID[iOMG][ 49 ], mappingData.OCCUPANCY_GRID[iOMG][ 50 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 51 ], mappingData.OCCUPANCY_GRID[iOMG][ 52 ], mappingData.OCCUPANCY_GRID[iOMG][ 53 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 54 ], mappingData.OCCUPANCY_GRID[iOMG][ 55 ], mappingData.OCCUPANCY_GRID[iOMG][ 56 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 57 ], mappingData.OCCUPANCY_GRID[iOMG][ 58 ], mappingData.OCCUPANCY_GRID[iOMG][ 59 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 60 ], mappingData.OCCUPANCY_GRID[iOMG][ 61 ], mappingData.OCCUPANCY_GRID[iOMG][ 62 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 63 ], mappingData.OCCUPANCY_GRID[iOMG][ 64 ], mappingData.OCCUPANCY_GRID[iOMG][ 65 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 66 ], mappingData.OCCUPANCY_GRID[iOMG][ 67 ], mappingData.OCCUPANCY_GRID[iOMG][ 68 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 69 ], mappingData.OCCUPANCY_GRID[iOMG][ 70 ], mappingData.OCCUPANCY_GRID[iOMG][ 71 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 72 ], mappingData.OCCUPANCY_GRID[iOMG][ 73 ], mappingData.OCCUPANCY_GRID[iOMG][ 74 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 75 ], mappingData.OCCUPANCY_GRID[iOMG][ 76 ], mappingData.OCCUPANCY_GRID[iOMG][ 77 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 78 ], mappingData.OCCUPANCY_GRID[iOMG][ 79 ], mappingData.OCCUPANCY_GRID[iOMG][ 80 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 81 ], mappingData.OCCUPANCY_GRID[iOMG][ 82 ], mappingData.OCCUPANCY_GRID[iOMG][ 83 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 84 ], mappingData.OCCUPANCY_GRID[iOMG][ 85 ], mappingData.OCCUPANCY_GRID[iOMG][ 86 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 87 ], mappingData.OCCUPANCY_GRID[iOMG][ 88 ], mappingData.OCCUPANCY_GRID[iOMG][ 89 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 90 ], mappingData.OCCUPANCY_GRID[iOMG][ 91 ], mappingData.OCCUPANCY_GRID[iOMG][ 92 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 93 ], mappingData.OCCUPANCY_GRID[iOMG][ 94 ], mappingData.OCCUPANCY_GRID[iOMG][ 95 ],
+                            mappingData.OCCUPANCY_GRID[iOMG][ 96]);
                 
-//                    commSendMsgToSendQueue(gridOut);
-//                }
+                    commSendMsgToSendQueue(gridOut);
+                }
                                             
             } 
             else if (msgId == MAP_MAPPING_TIMER_ID) {
@@ -338,9 +462,12 @@ void MAPPING_Tasks(void) {
                 msg1[NAV_CHECKSUM_IDX] = navCalculateChecksum(msg1);
                 navSendMsg(msg1);
             }
+            
         }
     }
 }
+
+
 
 
 
