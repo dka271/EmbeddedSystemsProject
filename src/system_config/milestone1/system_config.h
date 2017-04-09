@@ -166,6 +166,78 @@ extern "C" {
 #define DRV_USART_BUFFER_QUEUE_SUPPORT              false
 #define DRV_USART_SUPPORT_TRANSMIT_DMA              false
 #define DRV_USART_SUPPORT_RECEIVE_DMA               false
+// *****************************************************************************
+/* I2C Driver Configuration Options
+*/
+#define DRV_I2C_INTERRUPT_MODE                    		true
+#define DRV_I2C_CLIENTS_NUMBER                    		3
+#define DRV_I2C_INSTANCES_NUMBER                  		3
+
+#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_1
+#define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
+#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_A
+#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_14
+#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_A
+#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_15
+#define DRV_I2C_BIT_BANG_IDX0                           false
+#define DRV_I2C_STOP_IN_IDLE_IDX0                       false
+#define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
+#define DRV_I2C_BAUD_RATE_IDX0                    		100000
+#define DRV_I2C_BRG_CLOCK_IDX0	                  		80000000
+#define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
+#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_1_MASTER
+#define DRV_I2C_SLAVE_INT_SRC_IDX0                		
+#define DRV_I2C_ERR_MX_INT_SRC_IDX0               		INT_SOURCE_I2C_1_ERROR
+#define DRV_I2C_INT_VECTOR_IDX0                         INT_VECTOR_I2C1
+#define DRV_I2C_ISR_VECTOR_IDX0                         _I2C_1_VECTOR
+#define DRV_I2C_INT_PRIORITY_IDX0                 		INT_PRIORITY_LEVEL1
+#define DRV_I2C_INT_SUB_PRIORITY_IDX0             		INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_POWER_STATE_IDX0                  		SYS_MODULE_POWER_RUN_FULL
+
+#define DRV_I2C_PERIPHERAL_ID_IDX1                      I2C_ID_2
+#define DRV_I2C_OPERATION_MODE_IDX1                     DRV_I2C_MODE_MASTER
+#define DRV_SCL_PORT_IDX1                               PORT_CHANNEL_A
+#define DRV_SCL_PIN_POSITION_IDX1                       PORTS_BIT_POS_2
+#define DRV_SDA_PORT_IDX1                               PORT_CHANNEL_A
+#define DRV_SDA_PIN_POSITION_IDX1                       PORTS_BIT_POS_3
+#define DRV_I2C_BIT_BANG_IDX1                           false
+#define DRV_I2C_STOP_IN_IDLE_IDX1                       false
+#define DRV_I2C_SMBus_SPECIFICATION_IDX1                false
+#define DRV_I2C_BAUD_RATE_IDX1                    		100000
+#define DRV_I2C_BRG_CLOCK_IDX1	                  		80000000
+#define DRV_I2C_SLEW_RATE_CONTROL_IDX1                  false
+
+#define DRV_I2C_MASTER_INT_SRC_IDX1                     INT_SOURCE_I2C_2_MASTER
+#define DRV_I2C_SLAVE_INT_SRC_IDX1                      
+#define DRV_I2C_ERR_MX_INT_SRC_IDX1                     INT_SOURCE_I2C_2_ERROR
+#define DRV_I2C_INT_VECTOR_IDX1                         INT_VECTOR_I2C2
+#define DRV_I2C_ISR_VECTOR_IDX1                         _I2C_2_VECTOR
+#define DRV_I2C_INT_PRIORITY_IDX1                       INT_PRIORITY_LEVEL1
+#define DRV_I2C_INT_SUB_PRIORITY_IDX1                   INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_POWER_STATE_IDX1                        SYS_MODULE_POWER_RUN_FULL
+
+#define DRV_I2C_PERIPHERAL_ID_IDX2                      I2C_ID_5
+#define DRV_I2C_OPERATION_MODE_IDX2                     DRV_I2C_MODE_MASTER
+#define DRV_SCL_PORT_IDX2                               PORT_CHANNEL_A
+#define DRV_SCL_PIN_POSITION_IDX2                       PORTS_BIT_POS_2
+#define DRV_SDA_PORT_IDX2                               PORT_CHANNEL_A
+#define DRV_SDA_PIN_POSITION_IDX2                       PORTS_BIT_POS_3
+#define DRV_I2C_BIT_BANG_IDX2                           false
+#define DRV_I2C_STOP_IN_IDLE_IDX2                       false
+#define DRV_I2C_SMBus_SPECIFICATION_IDX2                false
+#define DRV_I2C_BAUD_RATE_IDX2                          100000
+#define DRV_I2C_BRG_CLOCK_IDX2                          80000000
+#define DRV_I2C_SLEW_RATE_CONTROL_IDX2                  false
+
+#define DRV_I2C_MASTER_INT_SRC_IDX2                     INT_SOURCE_I2C_5_MASTER
+#define DRV_I2C_SLAVE_INT_SRC_IDX2                      
+#define DRV_I2C_ERR_MX_INT_SRC_IDX2                     INT_SOURCE_I2C_5_ERROR
+#define DRV_I2C_INT_VECTOR_IDX2                         INT_VECTOR_I2C5
+#define DRV_I2C_ISR_VECTOR_IDX2                         _I2C_5_VECTOR
+#define DRV_I2C_INT_PRIORITY_IDX2                       INT_PRIORITY_LEVEL1
+#define DRV_I2C_INT_SUB_PRIORITY_IDX2                   INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_POWER_STATE_IDX2                        SYS_MODULE_POWER_RUN_FULL
+
 
 // *****************************************************************************
 // *****************************************************************************

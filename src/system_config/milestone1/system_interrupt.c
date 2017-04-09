@@ -276,6 +276,29 @@ void IntHandlerDrvTmrInstance3(void) {
 }
 
 
+void IntHandlerDrvI2CInstance0(void)
+{
+    DRV_I2C_Tasks(sysObj.drvI2C0);
+ 
+}
+         
+ 
+   
+  
+void IntHandlerDrvI2CInstance1(void) 
+{
+    DRV_I2C_Tasks(sysObj.drvI2C1);
+ 
+}
+         
+ 
+     
+void IntHandlerDrvI2CInstance2(void) 
+{
+    DRV_I2C_Tasks(sysObj.drvI2C2);
+ 
+}
+
 
 /*******************************************************************************
  End of File

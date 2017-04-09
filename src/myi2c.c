@@ -1,15 +1,11 @@
 /* ************************************************************************** */
 /** Descriptive File Name
-
   @Company
     Company Name
-
   @File Name
     filename.c
-
   @Summary
     Brief description of the file.
-
   @Description
     Describe the purpose of this file.
  */
@@ -24,7 +20,7 @@
 #include "myi2c.h"
 
 //------------------------------------------------------------------------------
-//TCS Color sensor control functions
+//PLIB TCS Color sensor control functions
 //------------------------------------------------------------------------------
 //Initializes the color sensor
 void TCS_Init(I2C_MODULE_ID bus, unsigned char waitTime, unsigned char gain){
@@ -68,6 +64,438 @@ unsigned char TCS_GetByte(I2C_MODULE_ID bus, unsigned char address){
     MyI2CStopBus(bus);
     return data;
 }
+    
+//------------------------------------------------------------------------------
+//Harmony Driver TCS Color sensor control functions
+//------------------------------------------------------------------------------
+//Initializes the color sensor
+void DRV_TCS_Init(DRV_HANDLE i2c_handle, unsigned char waitTime, unsigned char gain){
+    //Initialize the device
+    unsigned char enableData;
+    DRV_TCS_GetByte(i2c_handle, TCS_ENABLE_REGISTER, &enableData);
+    DRV_TCS_SendByte(i2c_handle, TCS_ENABLE_REGISTER, (enableData | (TCS_ENABLE_PON_MASK | TCS_ENABLE_AEN_MASK)));
+//    DRV_TCS_SendByte(i2c_handle, TCS_ENABLE_REGISTER, (TCS_ENABLE_PON_MASK | TCS_ENABLE_AEN_MASK));
+    //Set the wait time
+    DRV_TCS_SendByte(i2c_handle, TCS_WAIT_TIMING_REGISTER, waitTime);
+    //Set the ADC gain
+    DRV_TCS_SendByte(i2c_handle, TCS_CONTROL_REGISTER, (gain & TCS_CONTROL_AGAIN_MASK));
+}
+
+//Configures the interrupt stuff for the color sensor
+void DRV_TCS_IntConfig(DRV_HANDLE i2c_handle, unsigned short lowThreshold, unsigned short highThreshold, unsigned char persistence){
+    //Set the interrupt thresholds
+    DRV_TCS_SendByte(i2c_handle, TCS_LOW_THRESHOLD_LOW_REGISTER, (lowThreshold & 0x00ff));
+    DRV_TCS_SendByte(i2c_handle, TCS_LOW_THRESHOLD_HIGH_REGISTER, ((lowThreshold & 0xff00) >> 8));
+    DRV_TCS_SendByte(i2c_handle, TCS_HIGH_THRESHOLD_LOW_REGISTER, (highThreshold & 0x00ff));
+    DRV_TCS_SendByte(i2c_handle, TCS_HIGH_THRESHOLD_HIGH_REGISTER, ((highThreshold & 0xff00) >> 8));
+    //Set the persistence value
+    DRV_TCS_SendByte(i2c_handle, TCS_PERSISTENCE_REGISTER, (persistence & TCS_PERSISTENCE_APERS_MASK));
+}
+
+//Send a byte to the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_SendByte(DRV_HANDLE i2c_handle, unsigned char address, unsigned char data){
+    unsigned char send_buffer[2];
+    send_buffer[0] = (address & TCS_REGISTER_ADDRESS_MASK) | (TCS_COMMAND_SELECT_MASK);
+    send_buffer[1] = data;
+    DRV_I2C_BUFFER_HANDLE buffer_handle = DRV_I2C_Transmit(i2c_handle, TCS_I2C_ADDRESS << 1, send_buffer, 2, NULL);
+    return buffer_handle;
+}
+
+//Send an address to the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_SendAddress(DRV_HANDLE i2c_handle, unsigned char address){
+    address &= TCS_REGISTER_ADDRESS_MASK;
+    address |= (TCS_COMMAND_SELECT_MASK);
+    DRV_I2C_BUFFER_HANDLE buffer_handle = DRV_I2C_Transmit(i2c_handle, TCS_I2C_ADDRESS << 1, &address, 1, NULL);
+    return buffer_handle;
+}
+
+//Receive a byte from the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_GetByte(DRV_HANDLE i2c_handle, unsigned char address, unsigned char *data){
+    address &= TCS_REGISTER_ADDRESS_MASK;
+    address |= (TCS_COMMAND_SELECT_MASK);
+    DRV_I2C_BUFFER_HANDLE buffer_handle = DRV_I2C_TransmitThenReceive (i2c_handle, TCS_I2C_ADDRESS << 1, &address, 1, data, 1, NULL);
+    return buffer_handle;
+}
+
+//Read all of the color data from the color sensors
+//Returns the colors in this order: (msB) (BH, BL, GH, GL, RH, RL, CH, CL) (msB)
+DRV_I2C_BUFFER_HANDLE DRV_TCS_GetColors(DRV_HANDLE i2c_handle, unsigned char data[8], unsigned char address){
+//    unsigned char address = TCS_RGBC_CLEAR_LOW_REGISTER;
+    address &= TCS_REGISTER_ADDRESS_MASK;
+    address |= (TCS_COMMAND_SELECT_MASK);
+    DRV_I2C_BUFFER_HANDLE buffer_handle = DRV_I2C_TransmitThenReceive (i2c_handle, TCS_I2C_ADDRESS << 1, &address, 1, data, 8, NULL);
+    return buffer_handle;
+}
+
+//Handle all communication with the color sensor
+//Sends color data to the NAV queue when the data is ready
+//Returns the current state of the communication
+int HandlerState[3];
+int PreviousState[3];
+unsigned char OnBlueTape[3];
+#define COLOR_DATA_LENGTH 8
+unsigned char ColorData1[COLOR_DATA_LENGTH];
+unsigned char ColorData2[COLOR_DATA_LENGTH];
+unsigned char ColorData3[COLOR_DATA_LENGTH];
+DRV_I2C_BUFFER_HANDLE BufferHandle[3];
+unsigned char navMsg[NAV_QUEUE_BUFFER_SIZE];
+//unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
+    //FOR TESTING
+//    if (COLOR_SENSOR_SERVER_TESTING){
+//        unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+//        sprintf(testServerMsg, "*State Machine Enter, Sensor %d, State %d~", ColorSensorNumber, HandlerState[ColorSensorNumber-1]);
+//        commSendMsgToWifiQueue(testServerMsg);
+//    }
+    //END FOR TESTING
+    if (ColorSensorNumber == COLOR_SENSOR_RESET_STATE_MACHINE){
+        //Reset the state machine
+        HandlerState[0] = STATE_WAITING_FOR_OPEN;
+        HandlerState[1] = STATE_WAITING_FOR_OPEN;
+        HandlerState[2] = STATE_WAITING_FOR_OPEN;
+        PreviousState[0] = STATE_WAITING_FOR_OPEN;
+        PreviousState[1] = STATE_WAITING_FOR_OPEN;
+        PreviousState[2] = STATE_WAITING_FOR_OPEN;
+        BufferHandle[0] = NULL;
+        BufferHandle[1] = NULL;
+        BufferHandle[2] = NULL;
+        Nop();
+        return 0;
+    }
+    switch (HandlerState[ColorSensorNumber-1]){
+        case STATE_WAITING_FOR_OPEN:{
+            //Wait for the i2c to be opened, and handle any errors that happen
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Waiting For Open~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if (i2c_handle == DRV_HANDLE_INVALID){
+                //Error occurred while opening the I2C module
+                Nop();
+            }else{
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_CONFIG_COMMAND_REGISTER;
+                Nop();
+            }
+            break;
+        }
+        case STATE_WAITING_FOR_TRANSFER_COMPLETED:{
+            //Wait for the transfer to finish
+            DRV_I2C_BUFFER_EVENT status = DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]);
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Waiting For Transfer Complete: %d~", status);
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if (status == DRV_I2C_BUFFER_EVENT_COMPLETE || status == DRV_I2C_BUFFER_EVENT_ERROR){
+                //Move on if the transfer is complete
+                switch (PreviousState[ColorSensorNumber-1]){
+                    case STATE_INIT_COLOR_SENSOR:{
+                        //Move to setting the wait time
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_CONFIG_WAIT_TIME;
+                        break;
+                    }
+                    case STATE_CONFIG_COMMAND_REGISTER:{
+                        //Move to initializing the color sensor
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_INIT_COLOR_SENSOR;
+                        break;
+                    }
+                    case STATE_CONFIG_WAIT_TIME:{
+                        //Move to setting the color sensor's ADC timing
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_CONFIG_ATIME;
+                        break;
+                    }
+                    case STATE_CONFIG_ATIME:{
+                        //Move to setting the color sensor's ADC gain
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_CONFIG_ADC_GAIN;
+                        break;
+                    }
+                    case STATE_CONFIG_ADC_GAIN:{
+                        //Move to send the address for the color read
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+//                        HandlerState = STATE_SEND_READ_COLOR_DATA_ADDRESS;
+                        HandlerState[ColorSensorNumber-1] = STATE_SEND_READ_COLOR_DATA;
+                        break;
+                    }
+                    case STATE_SEND_READ_COLOR_DATA_ADDRESS:{
+                        //Move to begin reading color sensor data
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_SEND_READ_COLOR_DATA;
+                        break;
+                    }
+                    case STATE_SEND_READ_COLOR_DATA:{
+                        //Move to finish reading color sensor data
+                        PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                        HandlerState[ColorSensorNumber-1] = STATE_FINISH_READ_COLOR_DATA;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        case STATE_INIT_COLOR_SENSOR:{
+            //Wait for the bus to be free, then initialize the color sensor
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Init Color Sensor~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                BufferHandle[ColorSensorNumber-1] = DRV_TCS_SendByte(i2c_handle, TCS_ENABLE_REGISTER, (TCS_ENABLE_PON_MASK | TCS_ENABLE_AEN_MASK));// | TCS_ENABLE_WEN_MASK));
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_CONFIG_COMMAND_REGISTER:{
+            //Wait for the bus to be free, then configure read protocol with the command register
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Config Command Register~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+//                BufferHandle = DRV_TCS_SendByte(i2c_handle, (TCS_COMMAND_SELECT_MASK | TCS_ENABLE_REGISTER), (TCS_COMMAND_SELECT_MASK | TCS_COMMAND_AUTO_INCREMENT));
+                unsigned char message[2];
+                message[0] = (TCS_COMMAND_SELECT_MASK | TCS_ENABLE_REGISTER);
+                message[1] = (TCS_COMMAND_AUTO_INCREMENT);
+//                message[1] = (TCS_COMMAND_SELECT_MASK | TCS_COMMAND_AUTO_INCREMENT);
+                BufferHandle[ColorSensorNumber-1] = DRV_I2C_Transmit(i2c_handle, TCS_I2C_ADDRESS << 1, message, 2, NULL);
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_CONFIG_WAIT_TIME:{
+            //Wait for the bus to be free, then set wait time
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Config Wait Time~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                BufferHandle[ColorSensorNumber-1] = DRV_TCS_SendByte(i2c_handle, TCS_WAIT_TIMING_REGISTER, 0xff);
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_CONFIG_ATIME:{
+            //Wait for the bus to be free, then set ADC time
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Config ADC Time~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                BufferHandle[ColorSensorNumber-1] = DRV_TCS_SendByte(i2c_handle, TCS_RGBC_TIMING_REGISTER, 0xc0);
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_CONFIG_ADC_GAIN:{
+            //Wait for the bus to be free, then set the ADC gain
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Config ADC Gain~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                BufferHandle[ColorSensorNumber-1] = DRV_TCS_SendByte(i2c_handle, TCS_CONTROL_REGISTER, (TCS_AGAIN_1X & TCS_CONTROL_AGAIN_MASK));
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_SEND_READ_COLOR_DATA_ADDRESS:{
+            //Wait for the bus to be free, then send the address to the color data
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Send Read Color Data Address~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                BufferHandle[ColorSensorNumber-1] = DRV_TCS_SendAddress(i2c_handle, TCS_RGBC_CLEAR_LOW_REGISTER);
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_SEND_READ_COLOR_DATA:{
+            //Wait for the bus to be free, then get the color data
+            //FOR TESTING
+            if (COLOR_SENSOR_SERVER_TESTING){
+                unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(testServerMsg, "*State Send Read Color Data~");
+//                commSendMsgToWifiQueue(testServerMsg);
+            }
+            //END FOR TESTING
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                if (ColorSensorNumber == COLOR_SENSOR_ID_1){
+                    BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData1, TCS_RGBC_CLEAR_LOW_REGISTER);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_2){
+                    BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData2, TCS_RGBC_CLEAR_LOW_REGISTER);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_3){
+                    BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData3, TCS_RGBC_CLEAR_LOW_REGISTER);
+                }
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+                HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
+            }
+            break;
+        }
+        case STATE_FINISH_READ_COLOR_DATA:{
+            //Handle sending the color data to the NAV queue
+            if ((BufferHandle[ColorSensorNumber-1] == NULL) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_COMPLETE) || (DRV_I2C_TransferStatusGet(i2c_handle, BufferHandle[ColorSensorNumber-1]) == DRV_I2C_BUFFER_EVENT_ERROR)){
+                unsigned int c;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
+                if (ColorSensorNumber == COLOR_SENSOR_ID_1){
+                    c = ColorData1[0] | (ColorData1[1] << 8);
+                    r = ColorData1[2] | (ColorData1[3] << 8);
+                    g = ColorData1[4] | (ColorData1[5] << 8);
+                    b = ColorData1[6] | (ColorData1[7] << 8);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_2){
+                    c = ColorData2[0] | (ColorData2[1] << 8);
+                    r = ColorData2[2] | (ColorData2[3] << 8);
+                    g = ColorData2[4] | (ColorData2[5] << 8);
+                    b = ColorData2[6] | (ColorData2[7] << 8);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_3){
+                    c = ColorData3[0] | (ColorData3[1] << 8);
+                    r = ColorData3[2] | (ColorData3[3] << 8);
+                    g = ColorData3[4] | (ColorData3[5] << 8);
+                    b = ColorData3[6] | (ColorData3[7] << 8);
+                }
+                //Send information to Navigation
+                if (ColorSensorNumber == COLOR_SENSOR_ID_1){
+                    //Front Left Color Sensor
+                    if (ColorIsBlue(r,g,b,c)){
+                        if (OnBlueTape[0] == 0){
+                            navMsg[0] = COLOR_IS_BLUE;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_1_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[0] = 1;
+                        }
+                    }else{
+                        if (OnBlueTape[0] == 1){
+                            navMsg[0] = 0;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_1_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[0] = 0;
+                        }
+                    }
+                    //FOR TESTING
+                    if (COLOR_SENSOR_SERVER_TESTING){
+                        unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                        if (ColorIsBlue(r,g,b,c)){
+                            sprintf(testServerMsg, "*{Sensor 1: Clear = %d, Red = %d, Green = %d, Blue = %d: Is Blue}~", c, r, g, b);
+                        }else{
+                            sprintf(testServerMsg, "*{Sensor 1: Clear = %d, Red = %d, Green = %d, Blue = %d}~", c, r, g, b);
+                        }
+//                        commSendMsgToWifiQueue(testServerMsg);
+                    }
+                    //END FOR TESTING
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_2){
+                    //Front Right Color Sensor
+                    if (ColorIsBlue(r,g,b,c)){
+                        if (OnBlueTape[1] == 0){
+                            navMsg[0] = COLOR_IS_BLUE;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_2_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[1] = 1;
+                        }
+                    }else{
+                        if (OnBlueTape[1] == 1){
+                            navMsg[0] = 0;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_2_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[1] = 0;
+                        }
+                    }
+                    //FOR TESTING
+                    if (COLOR_SENSOR_SERVER_TESTING){
+                        unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                        if (ColorIsBlue(r,g,b,c)){
+                            sprintf(testServerMsg, "*{Sensor 2: Clear = %d, Red = %d, Green = %d, Blue = %d: Is Blue}~", c, r, g, b);
+                        }else{
+                            sprintf(testServerMsg, "*{Sensor 2: Clear = %d, Red = %d, Green = %d, Blue = %d}~", c, r, g, b);
+                        }
+//                        commSendMsgToWifiQueue(testServerMsg);
+                    }
+                    //END FOR TESTING
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_3){
+                    //Back Right Color Sensor
+                    if (ColorIsBlue(r,g,b,c)){
+                        if (OnBlueTape[2] == 0){
+                            navMsg[0] = COLOR_IS_BLUE;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_3_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[2] = 1;
+                        }
+                    }else{
+                        if (OnBlueTape[2] == 1){
+                            navMsg[0] = 0;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_3_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[2] = 0;
+                        }
+                    }
+                    //FOR TESTING
+                    if (COLOR_SENSOR_SERVER_TESTING){
+                        unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                        if (ColorIsBlue(r,g,b,c)){
+                            sprintf(testServerMsg, "*{Sensor 3: Clear = %d, Red = %d, Green = %d, Blue = %d: Is Blue}~", c, r, g, b);
+                        }else{
+                            sprintf(testServerMsg, "*{Sensor 3: Clear = %d, Red = %d, Green = %d, Blue = %d}~", c, r, g, b);
+                        }
+//                        commSendMsgToWifiQueue(testServerMsg);
+                    }
+                    //END FOR TESTING
+                }
+                Nop();
+                PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
+//                HandlerState = STATE_SEND_READ_COLOR_DATA_ADDRESS;
+                HandlerState[ColorSensorNumber-1] = STATE_SEND_READ_COLOR_DATA;
+            }
+            break;
+        }
+    }
+    return HandlerState[ColorSensorNumber-1];
+}
 
 //------------------------------------------------------------------------------
 //I2C helper functions
@@ -79,7 +507,7 @@ unsigned char CreateAddressWord(unsigned char address, unsigned char readWrite){
 }
 
 //------------------------------------------------------------------------------
-//I2C communication functions
+//PLIB I2C communication functions
 //------------------------------------------------------------------------------
 //Take control on an I2C bus and begin transmission
 bool MyI2CStartBus(I2C_MODULE_ID bus){
@@ -112,7 +540,7 @@ bool MyI2CStopBus(I2C_MODULE_ID bus){
 //Initialize the bus
 bool MyI2CInit(I2C_MODULE_ID bus, unsigned int sourceFrequency, unsigned int baudRate){
     //Set the baud rate
-//    PLIB_I2C_BaudRateSet(bus, sourceFrequency, baudRate);
+    PLIB_I2C_BaudRateSet(bus, sourceFrequency, baudRate);
     //Enable the bus
     PLIB_I2C_Enable(bus);
     
@@ -158,10 +586,10 @@ unsigned char MyI2CReadByte(I2C_MODULE_ID bus){
 //Server testing functions
 //------------------------------------------------------------------------------
 void ServerTestColorSensor(I2C_MODULE_ID bus){
-    if (!COLOR_SENSOR_SERVER_TESTING){
-        //Do not preform the test if not testing
-        return;
-    }
+//    if (COLOR_SENSOR_SERVER_TESTING == 0){
+//        //Do not preform the test if not testing
+//        return;
+//    }
     unsigned char clow = TCS_GetByte(bus, TCS_RGBC_CLEAR_LOW_REGISTER);
     unsigned char chigh = TCS_GetByte(bus, TCS_RGBC_CLEAR_HIGH_REGISTER);
     unsigned char rlow = TCS_GetByte(bus, TCS_RGBC_RED_LOW_REGISTER);
@@ -176,6 +604,21 @@ void ServerTestColorSensor(I2C_MODULE_ID bus){
     unsigned int b = blow | (bhigh << 8);
     unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
     unsigned char id = TCS_GetByte(bus, TCS_ID_REGISTER);
+    sprintf(testServerMsg, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d,%d,%d,%d],\"C\":123}~", id, c, r, g, b);
+    commSendMsgToWifiQueue(testServerMsg);
+}
+
+
+void ServerTestColorSensor_Driver(DRV_HANDLE i2c_handle){
+    unsigned char colorData[8];
+    DRV_TCS_GetColors(i2c_handle, colorData, TCS_RGBC_CLEAR_LOW_REGISTER);
+    unsigned int c = colorData[0] | (colorData[1] << 8);
+    unsigned int r = colorData[2] | (colorData[3] << 8);
+    unsigned int g = colorData[4] | (colorData[5] << 8);
+    unsigned int b = colorData[6] | (colorData[7] << 8);
+    unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+    unsigned char id;
+    DRV_TCS_GetByte(i2c_handle, TCS_ID_REGISTER, &id);
     sprintf(testServerMsg, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d,%d,%d,%d],\"C\":123}~", id, c, r, g, b);
     commSendMsgToWifiQueue(testServerMsg);
 }

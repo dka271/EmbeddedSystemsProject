@@ -64,9 +64,6 @@ void NAVIGATION_Initialize ( void )
     if(navQueue == 0){
         dbgPauseAll();
     }
-    
-    //Initialize the I2C drivers
-//    i2cDriver = DRV_I2C_Initialize(I2C_ID_1, &i2c_init_data);
 }
 
 void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
@@ -111,19 +108,55 @@ void NAVIGATION_Tasks ( void )
     int ticksRemaining = ROVER_TICKS_REMAINING_NONE;
     int m1PID;
     int m2PID;
-    SetDirectionForwards();
-    
-    //For electromagnet testing
-//    ElectromagnetSetOff();
-    
-    //For color sensor testing
-    I2C_MODULE_ID i2cbus = I2C_ID_1;
-    if (MyI2CInit(i2cbus, 50000000, 57600)){
-        TCS_Init(i2cbus, 0xff, TCS_AGAIN_16X);
-        TCS_IntConfig(i2cbus, 0, 0, 0);
-    }
+//    unsigned char oriented = 0;
+        unsigned char oriented = 0;
+//    SetDirectionForwards();
+    SetDirectionClockwise();
 
     dbgOutputLoc(DBG_LOC_NAV_BEFORE_WHILE);
+    
+    
+    //I2C Initialization Stuff
+    //Open the I2C
+    int i2cCount = -100;//Set this low so the color sensors are guaranteed to receive power by the time we start initializing them
+    while (DRV_I2C_Status(sysObj.drvI2C0) != SYS_STATUS_READY){
+        //Wait for the I2C to be ready to be opened
+        //FOR TESTING
+        if (COLOR_SENSOR_SERVER_TESTING){
+//            sprintf(testMsg, "Waiting for I2C 1...");
+//            commSendMsgToWifiQueue(testMsg);
+        }
+        //END FOR TESTING
+    }
+    DRV_HANDLE i2c1_handle = DRV_I2C_Open(DRV_I2C_INDEX_0, DRV_IO_INTENT_READWRITE);
+    while (DRV_I2C_Status(sysObj.drvI2C1) != SYS_STATUS_READY){
+        //Wait for the I2C to be ready to be opened
+        //FOR TESTING
+        if (COLOR_SENSOR_SERVER_TESTING){
+//            sprintf(testMsg, "Waiting for I2C 2...");
+//            commSendMsgToWifiQueue(testMsg);
+        }
+        //END FOR TESTING
+    }
+    DRV_HANDLE i2c2_handle = DRV_I2C_Open(DRV_I2C_INDEX_1, DRV_IO_INTENT_READWRITE);
+    
+    
+    
+    while (DRV_I2C_Status(sysObj.drvI2C2) != SYS_STATUS_READY){
+        //Wait for the I2C to be ready to be opened
+        //FOR TESTING
+        if (COLOR_SENSOR_SERVER_TESTING){
+//            sprintf(testMsg, "Waiting for I2C 2...");
+//            commSendMsgToWifiQueue(testMsg);
+        }
+        //END FOR TESTING
+    }
+    DRV_HANDLE i2c3_handle = DRV_I2C_Open(DRV_I2C_INDEX_2, DRV_IO_INTENT_READWRITE);
+    
+    //Init the I2C state machine
+    DRV_TCS_HandleColorSensor(NULL, COLOR_SENSOR_RESET_STATE_MACHINE);
+    
+    
     while(1){
         //Block until a message is received
         dbgOutputLoc(DBG_LOC_NAV_BEFORE_RECEIVE);
@@ -137,6 +170,7 @@ void NAVIGATION_Tasks ( void )
             //Get the message ID
             int msgId = (receivemsg[NAV_SOURCE_ID_IDX] & NAV_SOURCE_ID_MASK) >> NAV_SOURCE_ID_OFFSET;
             //Handle a specific message
+ 
             if (msgId == NAV_TIMER_COUNTER_3_ID_SENSOR){
                 //Motor 2 Encoder Message Handler
                 speed2 = (receivemsgint & 0x0000ffff) - previousValue2;
@@ -149,9 +183,15 @@ void NAVIGATION_Tasks ( void )
                     //Handle Daniel's server testing
                     motorTestNavSendSpeed(speed2);
                 }
+                
+                if(oriented == 0){
+                    desiredSpeed = ROVER_SPEED_SLOW;
+                    ticksRemaining = deg2tick(720);
+                }
 
                 //Handle PWM stuff
                 m2PID = PID2(desiredSpeed, speed2);
+                Nop();
             }else if (msgId == NAV_TIMER_COUNTER_5_ID_SENSOR){
                 //Motor 2 Encoder Message Handler
                 speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
@@ -169,13 +209,10 @@ void NAVIGATION_Tasks ( void )
                 m1PID = PID1(desiredSpeed, speed1);
                 
                 //Handle unit testing
-                if (UNIT_TESTING){
-                    encoderSpeedTest(speed1);
-                }
-                //Handle color sensor testing
-                if (COLOR_SENSOR_SERVER_TESTING){
-                    ServerTestColorSensor(i2cbus);
-                }
+//                if (UNIT_TESTING){
+//                    encoderSpeedTest(speed1);
+//                }
+                Nop();
             }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
                 //Handle stuff from color sensor 1
             }else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR){
@@ -195,11 +232,45 @@ void NAVIGATION_Tasks ( void )
                 if (pwmCount >= 25){
                     pwmCount = 0;
                 }
+                
+                //Handle color sensor communication state machine
+                i2cCount++;
+                if (i2cCount >= 50){
+                    int currentState2 = DRV_TCS_HandleColorSensor(i2c1_handle, COLOR_SENSOR_ID_2);
+                    i2cCount = 0;
+                    Nop();
+                }else if (i2cCount == 25){
+                    int currentState1 = DRV_TCS_HandleColorSensor(i2c2_handle, COLOR_SENSOR_ID_1);
+                }
+                else if (i2cCount == 10){
+                    int currentState1 = DRV_TCS_HandleColorSensor(i2c3_handle, COLOR_SENSOR_ID_3);
+                }
+                Nop();
             }else if (msgId == NAV_OTHER_ID){
+                
+                unsigned char pixyVal[RECEIVE_BUFFER_SIZE];
+                
+//                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", 0, 1);
+//                commSendMsgToSendQueue(pixyVal);
+                
+                if (oriented == 0){
+//                    desiredSpeed = ROVER_SPEED_STOPPED;
+                    SetDirectionForwards();
+                    desiredSpeed = ROVER_SPEED_STRAIGHT;
+                    ticksRemaining = deg2tick(100);
+//                    ticksRemaining = 0;
+                    oriented = 1;
+                }
+//                unsigned char pixyVal[RECEIVE_BUFFER_SIZE];
+//                
+//                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", 0, 1);
+//                commSendMsgToSendQueue(pixyVal);
                 //Handle a message from another source
                 //Handle Daniel's server testing
-                motorTestNavReceive(receivemsg, &desiredSpeed, &ticksRemaining);
+//                motorTestNavReceive(receivemsg, &desiredSpeed, &ticksRemaining);
+                Nop();
             }
+//        }
         }
     }
 }

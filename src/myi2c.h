@@ -1,15 +1,11 @@
 /* ************************************************************************** */
 /** Descriptive File Name
-
   @Company
     Company Name
-
   @File Name
     filename.h
-
   @Summary
     Brief description of the file.
-
   @Description
     Describe the purpose of this file.
  */
@@ -20,8 +16,11 @@
 
 #include "debug.h"
 #include "communication_public.h"
+#include "navigation_public.h"
+#include "linesensing.h"
+//#include "LED.h"
 
-#define COLOR_SENSOR_SERVER_TESTING 0
+#define COLOR_SENSOR_SERVER_TESTING 1
 
 //Information specific to the TCS34725 RGB Color Sensor
 //I2C address
@@ -48,6 +47,7 @@
 #define TCS_RGBC_BLUE_LOW_REGISTER 0x1a
 #define TCS_RGBC_BLUE_HIGH_REGISTER 0x1b
 //Bit masks for registers
+#define TCS_COMMAND_SELECT_MASK 0x80
 #define TCS_ENABLE_AIEN_MASK 0x10
 #define TCS_ENABLE_WEN_MASK 0x08
 #define TCS_ENABLE_AEN_MASK 0x02
@@ -57,11 +57,31 @@
 #define TCS_CONTROL_AGAIN_MASK 0x03
 #define TCS_STATUS_AINT_MASK 0x10
 #define TCS_STATUS_AVALID_MASK 0x01
+#define TCS_REGISTER_ADDRESS_MASK 0x1f
 //Values for the registers
+#define TCS_COMMAND_AUTO_INCREMENT 0x20
 #define TCS_AGAIN_1X 0x00
 #define TCS_AGAIN_4X 0x01
 #define TCS_AGAIN_16X 0x02
 #define TCS_AGAIN_60X 0x03
+//TCS State Machine states
+#define STATE_WAITING_FOR_OPEN 0
+#define STATE_INIT_COLOR_SENSOR 1
+#define STATE_WAITING_FOR_TRANSFER_COMPLETED 2
+#define STATE_CONFIG_ADC_GAIN 3
+#define STATE_SEND_READ_COLOR_DATA 4
+#define STATE_FINISH_READ_COLOR_DATA 5
+#define STATE_CONFIG_COMMAND_REGISTER 6
+#define STATE_SEND_READ_COLOR_DATA_ADDRESS 7
+#define STATE_CONFIG_WAIT_TIME 8
+#define STATE_CONFIG_ATIME 9
+//Defines for information sent to Navigation
+#define COLOR_SENSOR_ID_1 1
+#define COLOR_SENSOR_ID_2 2
+#define COLOR_SENSOR_ID_3 3
+#define COLOR_SENSOR_RESET_STATE_MACHINE 4
+#define COLOR_DATA_ID 0xcc
+#define COLOR_IS_BLUE 0xbb
 
 /* Provide C++ Compatibility */
 #ifdef __cplusplus
@@ -69,7 +89,7 @@ extern "C" {
 #endif
     
 //------------------------------------------------------------------------------
-//TCS Color sensor control functions
+//PLIB TCS Color sensor control functions
 //------------------------------------------------------------------------------
 //Initializes the color sensor
 void TCS_Init(I2C_MODULE_ID bus, unsigned char waitTime, unsigned char gain);
@@ -82,6 +102,33 @@ void TCS_SendByte(I2C_MODULE_ID bus, unsigned char address, unsigned char data);
 
 //Receive a byte from the color sensor
 unsigned char TCS_GetByte(I2C_MODULE_ID bus, unsigned char address);
+    
+//------------------------------------------------------------------------------
+//Harmony Driver TCS Color sensor control functions
+//------------------------------------------------------------------------------
+//Initializes the color sensor
+void DRV_TCS_Init(DRV_HANDLE i2c_handle, unsigned char waitTime, unsigned char gain);
+
+//Configures the interrupt stuff for the color sensor
+void DRV_TCS_IntConfig(DRV_HANDLE i2c_handle, unsigned short lowThreshold, unsigned short highThreshold, unsigned char persistence);
+
+//Send a byte to the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_SendByte(DRV_HANDLE i2c_handle, unsigned char address, unsigned char data);
+
+//Send an address to the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_SendAddress(DRV_HANDLE i2c_handle, unsigned char address);
+
+//Receive a byte from the color sensor
+DRV_I2C_BUFFER_HANDLE DRV_TCS_GetByte(DRV_HANDLE i2c_handle, unsigned char address, unsigned char *data);
+
+//Read all of the color data from the color sensors
+//Returns the colors in this order: (msB) (BH, BL, GH, GL, RH, RL, CH, CL) (msB)
+DRV_I2C_BUFFER_HANDLE DRV_TCS_GetColors(DRV_HANDLE i2c_handle, unsigned char data[8], unsigned char address);
+
+//Handle all communication with the color sensor
+//Sends color data to the NAV queue when the data is ready
+//Returns the current state of the communication
+int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber);
 
 //------------------------------------------------------------------------------
 //I2C helper functions
@@ -90,7 +137,7 @@ unsigned char TCS_GetByte(I2C_MODULE_ID bus, unsigned char address);
 unsigned char CreateAddressWord(unsigned char address, unsigned char readWrite);
 
 //------------------------------------------------------------------------------
-//I2C communication functions
+//PLIB I2C communication functions
 //------------------------------------------------------------------------------
 //Take control on an I2C bus and begin transmission
 bool MyI2CStartBus(I2C_MODULE_ID bus);
@@ -115,6 +162,7 @@ unsigned char MyI2CReadByte(I2C_MODULE_ID bus);
 //Server testing functions
 //------------------------------------------------------------------------------
 void ServerTestColorSensor(I2C_MODULE_ID bus);
+void ServerTestColorSensor_Driver(DRV_HANDLE i2c_handle);
 
     /* Provide C++ Compatibility */
 #ifdef __cplusplus
