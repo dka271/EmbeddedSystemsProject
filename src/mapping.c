@@ -50,7 +50,16 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "mapping.h"
 #include "ms2test.h"
 
+//Private Structures
 MAPPING_DATA mappingData;
+object tempObjectList[MAX_NUMBER_OF_OBJECTS];
+unsigned char tempObjectListTop = 0;
+object finalObjectList[MAX_NUMBER_OF_OBJECTS];
+unsigned char finalObjectListTop = 0;
+object deletedObjectList[MAX_NUMBER_OF_DELETED_OBJECTS];
+unsigned char deletedObjectListTop = 0;
+object roverList[NUMBER_OF_ROVERS];
+unsigned char roverListTop = 0;
 
 static QueueHandle_t mapQueue;
 

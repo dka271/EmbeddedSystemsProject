@@ -269,6 +269,7 @@
     <Elem>..\src</Elem>
     <Elem>..\src\milestone1</Elem>
     <Elem>..\src\system_config\milestone1</Elem>
+    <Elem>../../../../../../microchip/harmony/v1_09</Elem>
     <Elem>../../../../../microchip/harmony/v1_09</Elem>
     <Elem>../../../../../../../microchip/harmony/v1_09</Elem>
   </sourceRootList>

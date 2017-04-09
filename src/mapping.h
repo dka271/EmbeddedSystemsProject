@@ -79,6 +79,12 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 extern "C" {
 
 #endif
+    
+//Global defines
+#define MAX_NUMBER_OF_OBJECTS 32
+#define MAX_NUMBER_OF_DELETED_OBJECTS 10
+#define NUMBER_OF_ROVERS 8
+    
 // DOM-IGNORE-END 
 
 // *****************************************************************************
@@ -135,6 +141,15 @@ typedef struct
     short rover_y_pos;
 
 } MAPPING_DATA;
+
+typedef struct
+{
+    bool isRover;
+    unsigned char centerX;
+    unsigned char centerY;
+    unsigned char width;
+    unsigned char length;
+} object;
 
 
 // *****************************************************************************
