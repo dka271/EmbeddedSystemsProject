@@ -86,6 +86,377 @@ unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
 }
 
 
+//Movement Control stuff
+unsigned int moveAmount[100];
+unsigned char moveType[100];
+unsigned int moveFirstIdx = 0;
+unsigned int moveCurrentIdx = 0;
+unsigned int moveLastIdx = 0;
+unsigned int moveGoalIdx = 0xff;
+unsigned int moveMaxIdx = 99;
+int roverStopped = 0;
+unsigned int desiredSpeed = ROVER_SPEED_STOPPED;
+int ticksRemaining = ROVER_TICKS_REMAINING_NONE;
+//Line Sensing stuff
+int ignoringTape = 0;
+int ignoreTapeCount = 0;
+int ignoreTapeMax = 40;
+bool cs1OnTape = false;
+bool cs2OnTape = false;
+bool cs3OnTape = false;
+int orientAttempts = 0;
+//Variables to be used for navigation
+unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
+unsigned int previousValue1 = 0;
+unsigned int speed1;
+unsigned int previousValue2 = 0;
+unsigned int speed2;
+unsigned int pwmCount = 0;
+int m1PID;
+int m2PID;
+unsigned char oriented = 0;
+
+// *****************************************************************************
+//Movement API functions
+
+//Clears any path that is currently in the queue
+void ResetMovementQueue(){
+    moveCurrentIdx = 0;
+    moveLastIdx = 0;
+    moveGoalIdx = 0xff;
+}
+
+//Stops the current movement of the rover
+void StopMovement(){
+    ticksRemaining = 0;
+    desiredSpeed = ROVER_SPEED_STOPPED;
+}
+
+//Adds a movement to the queue
+void AddMovement(int tickAmount, int direction){
+    moveAmount[moveLastIdx] = tickAmount;
+    moveType[moveLastIdx] = direction;
+    moveLastIdx++;
+}
+
+//Sets the goal to the movement that was just added
+void SetMovementGoal(){
+    moveGoalIdx = moveLastIdx;
+}
+
+//This function handles reading from the movement queue and starting movements
+void HandleMovementQueue(){
+    if (speed2 == 0){
+        roverStopped++;
+    }else{
+        roverStopped = 0;
+    }
+    if (roverStopped >= 10 && moveLastIdx > moveCurrentIdx){
+        //There is a command, and the rover is not moving
+        //Interpret the command and control the rover
+        if (moveType[moveCurrentIdx] == ROVER_DIRECTION_LEFT){
+            //Handle a left turn
+            SetDirectionCounterclockwise();
+            ticksRemaining = moveAmount[moveCurrentIdx];
+            if (ticksRemaining < 0){
+                ticksRemaining *= -1;
+                SetDirectionClockwise();
+            }
+            int minRotation = deg2tickF(30);
+            if (ticksRemaining >= minRotation){
+                //Normal turning speed
+                desiredSpeed = ROVER_SPEED_TURNING;
+            }else{
+                //Slow turning speed
+                desiredSpeed = ROVER_SPEED_SLOW_TURNING;
+                ticksRemaining += 30;
+            }
+        }else if (moveType[moveCurrentIdx] == ROVER_DIRECTION_RIGHT){
+            //Handle a right turn
+            SetDirectionClockwise();
+            ticksRemaining = moveAmount[moveCurrentIdx];
+            if (ticksRemaining < 0){
+                ticksRemaining *= -1;
+                SetDirectionCounterclockwise();
+            }
+            int minRotation = deg2tickF(30);
+            if (ticksRemaining >= minRotation){
+                //Normal turning speed
+                desiredSpeed = ROVER_SPEED_TURNING;
+            }else{
+                //Slow turning speed
+                desiredSpeed = ROVER_SPEED_SLOW_TURNING;
+                ticksRemaining += 30;
+            }
+        }else if (moveType[moveCurrentIdx] == ROVER_DIRECTION_FORWARDS){
+            //Handle forward movement
+            SetDirectionForwards();
+            ticksRemaining = moveAmount[moveCurrentIdx];
+            int minMove = in2tick(2);
+            if (ticksRemaining <= minMove){
+                desiredSpeed = ROVER_SPEED_SLOW;
+            }else{
+                desiredSpeed = ROVER_SPEED_STRAIGHT;
+            }
+        }else if (moveType[moveCurrentIdx] == ROVER_DIRECTION_BACKWARDS){
+            //Handle backward movement
+            SetDirectionBackwards();
+            ticksRemaining = moveAmount[moveCurrentIdx];
+            int minMove = in2tick(2);
+            if (ticksRemaining <= minMove){
+                desiredSpeed = ROVER_SPEED_SLOW;
+            }else{
+                desiredSpeed = ROVER_SPEED_STRAIGHT;
+            }
+        }
+        moveCurrentIdx++;
+        roverStopped = 0;
+    }else if (roverStopped > 10 && moveCurrentIdx == moveGoalIdx){
+        //Destination has been reached, reset the command queue
+        ResetMovementQueue();
+    }
+}
+
+//This function handles movement control when the side color sensor enters or leaves tape
+void HandleSideColorSensor(){
+    switch (movementState){
+        case (STATE_WAITING_FOR_GAME_START):{
+            break;
+        }
+        case (STATE_LOOKING_FOR_FLAG):{
+            break;
+        }
+        case (STATE_ORIENTING):{
+//            orientAttempts++;
+            if (!cs3OnTape){
+                //The side color sensor is not on tape
+                if (cs1OnTape && !cs2OnTape){
+                    
+                }else if (cs1OnTape && cs2OnTape){
+                    
+                }else if (!cs1OnTape && cs2OnTape){
+                    
+                }else if (!cs1OnTape && !cs2OnTape){
+                    
+                }
+            }else{
+                //The side color sensor is on tape
+                if (cs1OnTape && !cs2OnTape){
+                    
+                }else if (cs1OnTape && cs2OnTape){
+                    
+                }else if (!cs1OnTape && cs2OnTape){
+                    
+                }else if (!cs1OnTape && !cs2OnTape){
+                    //The only way this can happen is if the corner sensors are on opposite sides of the line
+                    //Undo the movement that got us here
+                    int dir = GetMotorDirection();
+                    ResetMovementQueue();
+                    StopMovement();
+                    switch (dir){
+                        case (ROVER_DIRECTION_LEFT):{
+                            AddMovement(deg2tick(25), ROVER_DIRECTION_RIGHT);
+                            SetMovementGoal();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_RIGHT):{
+                            AddMovement(deg2tick(25), ROVER_DIRECTION_LEFT);
+                            SetMovementGoal();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_FORWARDS):{
+                            AddMovement(cm2tick(10), ROVER_DIRECTION_BACKWARDS);
+                            SetMovementGoal();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_BACKWARDS):{
+                            AddMovement(cm2tick(10), ROVER_DIRECTION_FORWARDS);
+                            SetMovementGoal();
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case (STATE_MOVING):{
+            break;
+        }
+    }
+}
+
+//This function handles movement control when a corner color sensor enters or leaves tape
+void HandleCornerColorSensor(int colorSensorId){
+    bool csMeOnTape;
+    bool csOtherOnTape;
+    int turn1Direction;
+    int turn2Direction;
+    int move1Direction;
+    int move2Direction;
+    if (colorSensorId == NAV_COLOR_SENSOR_1_ID_SENSOR){
+        //This is the front left color sensor
+        csMeOnTape = cs1OnTape;
+        csOtherOnTape = cs2OnTape;
+        turn1Direction = ROVER_DIRECTION_LEFT;
+        turn2Direction = ROVER_DIRECTION_RIGHT;
+        move1Direction = ROVER_DIRECTION_FORWARDS;
+        move2Direction = ROVER_DIRECTION_BACKWARDS;
+    }else if (colorSensorId == NAV_COLOR_SENSOR_2_ID_SENSOR){
+        //This is the back left color sensor
+        csMeOnTape = cs2OnTape;
+        csOtherOnTape = cs1OnTape;
+        turn2Direction = ROVER_DIRECTION_LEFT;
+        turn1Direction = ROVER_DIRECTION_RIGHT;
+        move2Direction = ROVER_DIRECTION_FORWARDS;
+        move1Direction = ROVER_DIRECTION_BACKWARDS;
+    }else{
+        //The color sensor ID is unknown
+        return;
+    }
+    
+    //Do nothing if we are ignoring tape
+    if (ignoringTape){
+        return;
+    }
+    
+    switch (movementState){
+        case (STATE_WAITING_FOR_GAME_START):{
+            if (csMeOnTape && !csOtherOnTape){
+                //This sensor just got on tape, and the other isn't on tape
+                //Move off of this tape
+                ResetMovementQueue();
+                StopMovement();
+                AddMovement(cm2tick(2), move2Direction);
+                SetMovementGoal();
+            }else if (csMeOnTape && csOtherOnTape){
+                //Both corner sensors are on tape
+                //Rotate so this isn't on tape
+                ResetMovementQueue();
+                StopMovement();
+                AddMovement(deg2tick(15), turn1Direction);
+                SetMovementGoal();
+            }else if (!csMeOnTape && csOtherOnTape){
+                //This sensor just got off tape, and the other is on tape
+                //Move off the tape
+                ResetMovementQueue();
+                StopMovement();
+                AddMovement(cm2tick(2), move1Direction);
+                SetMovementGoal();
+            }else if (!csMeOnTape && !csOtherOnTape){
+                //This just got off tape, and the other isn't on tape
+                //Kill any path, and stop the rover from moving
+                ResetMovementQueue();
+                StopMovement();
+            }
+            break;
+        }
+        case (STATE_LOOKING_FOR_FLAG):{
+            break;
+        }
+        case (STATE_ORIENTING):{
+            orientAttempts++;
+            if ((orientAttempts > 20) && (cs1OnTape || cs2OnTape || !cs3OnTape)){
+                //This orientation is failing, back up and try again
+                ResetMovementQueue();
+                StopMovement();
+                AddMovement(deg2tick(120), ROVER_DIRECTION_RIGHT);
+                AddMovement(cm2tick(13), ROVER_DIRECTION_FORWARDS);
+                AddMovement(deg2tick(140), ROVER_DIRECTION_LEFT);
+                AddMovement(cm2tick(20), ROVER_DIRECTION_FORWARDS);
+                SetMovementGoal();
+                ignoringTape = 1;
+                ignoreTapeCount = -20;
+            }else if (!cs3OnTape){
+                //The side color sensor is not on tape
+                if (csMeOnTape && !csOtherOnTape){
+                    //This sensor just got on tape, and the other isn't on tape
+                    //Rotate to try to get the side sensor on tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(cm2tick(1), move1Direction);
+                    AddMovement(deg2tick(COLOR_SENSOR_ANGLE), turn2Direction);
+                    SetMovementGoal();
+                }else if (csMeOnTape && csOtherOnTape){
+                    //Both corner sensors are on tape
+                    //Rotate so this isn't on tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(deg2tick(15), turn1Direction);
+                    SetMovementGoal();
+                }else if (!csMeOnTape && csOtherOnTape){
+                    //This sensor just got off tape, and the other is on tape
+                    //Do nothing
+                }else if (!csMeOnTape && !csOtherOnTape){
+                    //Everything is off tape
+                    //Turn towards the tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(deg2tick(20), turn1Direction);
+                    SetMovementGoal();
+                    
+                }
+            }else{
+                //The side color sensor is on tape
+                if (csMeOnTape && !csOtherOnTape){
+                    //This sensor just got on tape, and the other isn't on tape
+                    //Turn to get just the side sensor on tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(deg2tick(10), turn2Direction);
+                    SetMovementGoal();
+                }else if (csMeOnTape && csOtherOnTape){
+                    //Both corner sensors are on tape
+                    //Rotate so this isn't on tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(deg2tick(25), turn1Direction);
+                    SetMovementGoal();
+                }else if (!csMeOnTape && csOtherOnTape){
+                    //This sensor just got off tape, and the other is on tape
+                    //Move then turn, trying to get just the side sensor on tape
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(cm2tickF(1.5), move1Direction);
+                    AddMovement(deg2tick(COLOR_SENSOR_ANGLE), turn1Direction);
+                    SetMovementGoal();
+                }else if (!csMeOnTape && !csOtherOnTape){
+                    //This just got off tape, and the other isn't on tape
+                    //The rover is oriented, stop movement
+                    ResetMovementQueue();
+                    StopMovement();
+//                    float orientationDiff = 90 - GetOrientation();
+//                    flagAngleFromStart = flagAngleFromStart + orientationDiff;
+                    switch (GetMotorDirection()){
+                        //Attempt to get the most accurate alignment
+                        case (ROVER_DIRECTION_LEFT):{
+                            SetDirectionClockwise();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_RIGHT):{
+                            SetDirectionCounterclockwise();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_FORWARDS):{
+                            SetDirectionBackwards();
+                            break;
+                        }
+                        case (ROVER_DIRECTION_BACKWARDS):{
+                            SetDirectionForwards();
+                            break;
+                        }
+                    }
+                    SetOrientation(90);
+                    movementState = STATE_MOVING;
+                }
+            }
+            break;
+        }
+        case (STATE_MOVING):{
+            break;
+        }
+    }
+}
+
 /******************************************************************************
   Function:
     void NAVIGATION_Tasks ( void )
@@ -93,28 +464,15 @@ unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]){
   Remarks:
     See prototype in navigation.h.
  */
-
 void NAVIGATION_Tasks ( void )
 {
     dbgOutputLoc(DBG_LOC_NAV_ENTER);
-    //Variables to be used for navigation
-    unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE];
-    unsigned int previousValue1 = 0;
-    unsigned int speed1;
-    unsigned int previousValue2 = 0;
-    unsigned int speed2;
-    unsigned int pwmCount = 0;
-    unsigned int desiredSpeed = ROVER_SPEED_STOPPED;
-    int ticksRemaining = ROVER_TICKS_REMAINING_NONE;
-    int m1PID;
-    int m2PID;
-//    unsigned char oriented = 0;
-        unsigned char oriented = 0;
 //    SetDirectionForwards();
     SetDirectionClockwise();
 
     dbgOutputLoc(DBG_LOC_NAV_BEFORE_WHILE);
-    
+    movementState = STATE_LOOKING_FOR_FLAG;
+    flagAngleFromStart = 0;
     
     //I2C Initialization Stuff
     //Open the I2C
@@ -146,7 +504,7 @@ void NAVIGATION_Tasks ( void )
         //Wait for the I2C to be ready to be opened
         //FOR TESTING
         if (COLOR_SENSOR_SERVER_TESTING){
-//            sprintf(testMsg, "Waiting for I2C 2...");
+//            sprintf(testMsg, "Waiting for I2C 3...");
 //            commSendMsgToWifiQueue(testMsg);
         }
         //END FOR TESTING
@@ -176,22 +534,34 @@ void NAVIGATION_Tasks ( void )
                 speed2 = (receivemsgint & 0x0000ffff) - previousValue2;
                 previousValue2 = receivemsgint & 0x0000ffff;
                 
+                //Handle path controls
+                HandleMovementQueue();
+                
                 //Handle remaining distance
                 if (GetMotorDirection() == ROVER_DIRECTION_LEFT){
                     HandleDistanceRemaining(&desiredSpeed, &ticksRemaining, speed2);
+                    
+                    //Handle position and orientation
+                    HandlePositionAndOrientation(speed2, GetMotorDirection(), CALCULATE_IN_CENTIMETERS);
                 
                     //Handle Daniel's server testing
-                    motorTestNavSendSpeed(speed2);
+//                    motorTestNavSendSpeed(speed2);
                 }
                 
-                if(oriented == 0){
+                //Spin around while looking for the flag
+                if (oriented == 0 && movementState == STATE_LOOKING_FOR_FLAG){
                     desiredSpeed = ROVER_SPEED_SLOW;
                     ticksRemaining = deg2tick(720);
+                }
+                
+                //Ignore tape for x seconds
+                ignoreTapeCount++;
+                if (ignoreTapeCount >= ignoreTapeMax){
+                    ignoringTape = 0;
                 }
 
                 //Handle PWM stuff
                 m2PID = PID2(desiredSpeed, speed2);
-                Nop();
             }else if (msgId == NAV_TIMER_COUNTER_5_ID_SENSOR){
                 //Motor 2 Encoder Message Handler
                 speed1 = (receivemsgint & 0x0000ffff) - previousValue1;
@@ -200,28 +570,43 @@ void NAVIGATION_Tasks ( void )
                 //Handle remaining distance
                 if (GetMotorDirection() != ROVER_DIRECTION_LEFT){
                     HandleDistanceRemaining(&desiredSpeed, &ticksRemaining, speed1);
+                    
+                    //Handle position and orientation
+                    HandlePositionAndOrientation(speed1, GetMotorDirection(), CALCULATE_IN_CENTIMETERS);
                 
                     //Handle Daniel's server testing
-                    motorTestNavSendSpeed(speed1);
+//                    motorTestNavSendSpeed(speed1);
                 }
 
                 //Handle PWM stuff
                 m1PID = PID1(desiredSpeed, speed1);
-                
-                //Handle unit testing
-//                if (UNIT_TESTING){
-//                    encoderSpeedTest(speed1);
-//                }
-                Nop();
             }else if (msgId == NAV_COLOR_SENSOR_1_ID_SENSOR){
                 //Handle stuff from color sensor 1
+                //Front left color sensor
+                if (receivemsg[0] == COLOR_IS_BLUE){
+                    cs1OnTape = true;
+                }else{
+                    cs1OnTape = false;
+                }
+                HandleCornerColorSensor(NAV_COLOR_SENSOR_1_ID_SENSOR);
             }else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR){
                 //Handle stuff from color sensor 2
+                //Back left color sensor
+                if (receivemsg[0] == COLOR_IS_BLUE){
+                    cs2OnTape = true;
+                }else{
+                    cs2OnTape = false;
+                }
+                HandleCornerColorSensor(NAV_COLOR_SENSOR_2_ID_SENSOR);
             }else if (msgId == NAV_COLOR_SENSOR_3_ID_SENSOR){
                 //Handle stuff from color sensor 3
-                if (UNIT_TESTING){
-                    navQueueReceiveTest(receivemsg);
+                //Left side color sensor
+                if (receivemsg[0] == COLOR_IS_BLUE){
+                    cs3OnTape = true;
+                }else{
+                    cs3OnTape = false;
                 }
+                HandleSideColorSensor();
             }else if (msgId == NAV_MAPPING_ID_SENSOR){
                 //Handle stuff from the mapping queue
             }else if (msgId == NAV_PWM_TIMER_ID){
@@ -241,8 +626,7 @@ void NAVIGATION_Tasks ( void )
                     Nop();
                 }else if (i2cCount == 25){
                     int currentState1 = DRV_TCS_HandleColorSensor(i2c2_handle, COLOR_SENSOR_ID_1);
-                }
-                else if (i2cCount == 10){
+                }else if (i2cCount == 10){
                     int currentState1 = DRV_TCS_HandleColorSensor(i2c3_handle, COLOR_SENSOR_ID_3);
                 }
                 Nop();
@@ -254,12 +638,15 @@ void NAVIGATION_Tasks ( void )
 //                commSendMsgToSendQueue(pixyVal);
                 
                 if (oriented == 0){
-//                    desiredSpeed = ROVER_SPEED_STOPPED;
-                    SetDirectionForwards();
-                    desiredSpeed = ROVER_SPEED_STRAIGHT;
-                    ticksRemaining = deg2tick(100);
-//                    ticksRemaining = 0;
+                    ResetMovementQueue();
+                    StopMovement();
+                    AddMovement(cm2tick(30), ROVER_DIRECTION_FORWARDS);
+                    SetMovementGoal();
+                    ignoringTape = 1;
+                    ignoreTapeCount = 20;
                     oriented = 1;
+                    movementState = STATE_ORIENTING;
+                    flagAngleFromStart = GetOrientation();
                 }
 //                unsigned char pixyVal[RECEIVE_BUFFER_SIZE];
 //                

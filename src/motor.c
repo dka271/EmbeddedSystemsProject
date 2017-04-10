@@ -22,11 +22,42 @@
 /* ************************************************************************** */
 #include "motor.h"
 
+//Private Variables
+int currentDirection = ROVER_DIRECTION_FORWARDS;
+float currentOrientation = 0;
+float currentPositionX = 0;
+float currentPositionY = 0;
+
 /* ************************************************************************** */
 /* ************************************************************************** */
 // Section: Interface Functions                                               */
 /* ************************************************************************** */
 /* ************************************************************************** */
+    
+//These functions are used to interface with the location and orientation of the rover
+void SetOrientation(float orientation){
+    currentOrientation = orientation;
+}
+float GetOrientation(){
+    return currentOrientation;
+}
+void SetLocationX(float x){
+    currentPositionX = x;
+}
+float GetLocationX(){
+    return currentPositionX;
+}
+void SetLocationY(float y){
+    currentPositionY = y;
+}
+float GetLocationY(){
+    return currentPositionY;
+}
+//This function returns the current direction of the rover
+int GetMotorDirection(){
+    Nop();
+    return currentDirection;
+}
     
 void Motor1SetDirection(int direction){
     /*TRISCCLR = 0x4000;
@@ -94,9 +125,9 @@ int GetPWMFromValue(unsigned int val, unsigned int count){
 }
 
 
-int currentDirection = ROVER_DIRECTION_FORWARDS;
+//This function handles distance remaining and controls the speed of the rover
 void HandleDistanceRemaining(int *desiredSpeed, int *ticksRemaining, int changeInSpeed){
-    if (currentDirection = ROVER_DIRECTION_FORWARDS || currentDirection == ROVER_DIRECTION_BACKWARDS){
+    if (currentDirection == ROVER_DIRECTION_FORWARDS || currentDirection == ROVER_DIRECTION_BACKWARDS){
         //Going straight
         if (*desiredSpeed > ROVER_SPEED_STOPPED){
             *ticksRemaining -= changeInSpeed;
@@ -111,24 +142,163 @@ void HandleDistanceRemaining(int *desiredSpeed, int *ticksRemaining, int changeI
             if (*ticksRemaining <= ROVER_TICKS_REMAINING_NONE){
                 *desiredSpeed = ROVER_SPEED_STOPPED;
             }
-//            else if (*ticksRemaining <= ROVER_TICKS_REMAINING_SLOW){
-//                *desiredSpeed = ROVER_SPEED_SLOW;
-//            }
+        }
+    }
+}
+
+//This function handles position and orientation updates
+void HandlePositionAndOrientation(int speed, int direction, bool inOrCm){
+    //Handle this differently if we are on the inverted X axis grid
+    if (INVERTED_X_AXIS){
+        if (direction == ROVER_DIRECTION_RIGHT){
+            //Handle counterclockwise rotation
+            float orientation = GetOrientation();
+            float changeInAngle = tick2degF(speed);
+            orientation = orientation + changeInAngle;
+            while (orientation < -180){
+                orientation = orientation + 360;
+            }
+            while (orientation >= 180){
+                orientation = orientation - 360;
+            }
+            SetOrientation(orientation);
+        }else if (direction == ROVER_DIRECTION_LEFT){
+            //Handle clockwise rotation
+            float orientation = GetOrientation();
+            float changeInAngle = tick2degF(speed);
+            orientation = orientation - changeInAngle;
+            while (orientation < -180){
+                orientation = orientation + 360;
+            }
+            while (orientation >= 180){
+                orientation = orientation - 360;
+            }
+            SetOrientation(orientation);
+        }else if (direction == ROVER_DIRECTION_FORWARDS){
+            //Handle forward movement
+            float X = GetLocationX();
+            float Y = GetLocationY();
+            float orientation = GetOrientation();
+            float changeInDistance;
+            if (inOrCm){
+                changeInDistance = tick2inF(speed);
+            }else{
+                changeInDistance = tick2cmF(speed);
+            }
+            float rads = orientation * (3.14159/180);
+            float changeInX = changeInDistance * cos(rads);
+            float changeInY = changeInDistance * sin(rads);
+            X += changeInX;
+            Y += changeInY;
+            SetLocationX(X);
+            SetLocationY(Y);
+        }else if (direction == ROVER_DIRECTION_BACKWARDS){
+            //Handle backward movement
+            float X = GetLocationX();
+            float Y = GetLocationY();
+            float orientation = GetOrientation();
+            float changeInDistance;
+            if (inOrCm){
+                changeInDistance = tick2inF(speed);
+            }else{
+                changeInDistance = tick2cmF(speed);
+            }
+            float rads = orientation * (3.14159/180);
+            float changeInX = changeInDistance * cos(rads);
+            float changeInY = changeInDistance * sin(rads);
+            X -= changeInX;
+            Y -= changeInY;
+            SetLocationX(X);
+            SetLocationY(Y);
+        }
+    }else{
+        if (direction == ROVER_DIRECTION_RIGHT){
+            //Handle clockwise rotation
+            float orientation = GetOrientation();
+            float changeInAngle = tick2degF(speed);
+            orientation = orientation - changeInAngle;
+            while (orientation < -180){
+                orientation = orientation + 360;
+            }
+            while (orientation >= 180){
+                orientation = orientation - 360;
+            }
+            SetOrientation(orientation);
+        }else if (direction == ROVER_DIRECTION_LEFT){
+            //Handle counterclockwise rotation
+            float orientation = GetOrientation();
+            float changeInAngle = tick2degF(speed);
+            orientation = orientation + changeInAngle;
+            while (orientation < -180){
+                orientation = orientation + 360;
+            }
+            while (orientation >= 180){
+                orientation = orientation - 360;
+            }
+            SetOrientation(orientation);
+        }else if (direction == ROVER_DIRECTION_FORWARDS){
+            //Handle forward movement
+            float X = GetLocationX();
+            float Y = GetLocationY();
+            float orientation = GetOrientation();
+            float changeInDistance;
+            if (inOrCm){
+                changeInDistance = tick2inF(speed);
+            }else{
+                changeInDistance = tick2cmF(speed);
+            }
+            float rads = orientation * (3.14159/180);
+            float changeInX = changeInDistance * cos(rads);
+            float changeInY = changeInDistance * sin(rads);
+            X += changeInX;
+            Y += changeInY;
+            SetLocationX(X);
+            SetLocationY(Y);
+        }else if (direction == ROVER_DIRECTION_BACKWARDS){
+            //Handle backward movement
+            float X = GetLocationX();
+            float Y = GetLocationY();
+            float orientation = GetOrientation();
+            float changeInDistance;
+            if (inOrCm){
+                changeInDistance = tick2inF(speed);
+            }else{
+                changeInDistance = tick2cmF(speed);
+            }
+            float rads = orientation * (3.14159/180);
+            float changeInX = changeInDistance * cos(rads);
+            float changeInY = changeInDistance * sin(rads);
+            X -= changeInX;
+            Y -= changeInY;
+            SetLocationX(X);
+            SetLocationY(Y);
         }
     }
 }
 
 
-
+//These functions handle setting the direction of the rover
 void SetDirectionClockwise(){
-    Motor1SetDirection(MOTOR_1_BACKWARDS);
-    Motor2SetDirection(MOTOR_2_FORWARDS);
-    currentDirection = ROVER_DIRECTION_RIGHT;
+    if (!INVERTED_X_AXIS){
+        Motor1SetDirection(MOTOR_1_BACKWARDS);
+        Motor2SetDirection(MOTOR_2_FORWARDS);
+        currentDirection = ROVER_DIRECTION_RIGHT;
+    }else{
+        Motor1SetDirection(MOTOR_1_FORWARDS);
+        Motor2SetDirection(MOTOR_2_BACKWARDS);
+        currentDirection = ROVER_DIRECTION_LEFT;
+    }
 }
 void SetDirectionCounterclockwise(){
-    Motor1SetDirection(MOTOR_1_FORWARDS);
-    Motor2SetDirection(MOTOR_2_BACKWARDS);
-    currentDirection = ROVER_DIRECTION_LEFT;
+    if (!INVERTED_X_AXIS){
+        Motor1SetDirection(MOTOR_1_FORWARDS);
+        Motor2SetDirection(MOTOR_2_BACKWARDS);
+        currentDirection = ROVER_DIRECTION_LEFT;
+    }else{
+        Motor1SetDirection(MOTOR_1_BACKWARDS);
+        Motor2SetDirection(MOTOR_2_FORWARDS);
+        currentDirection = ROVER_DIRECTION_RIGHT;
+    }
 }
 void SetDirectionForwards(){
     Motor1SetDirection(MOTOR_1_FORWARDS);
@@ -140,10 +310,8 @@ void SetDirectionBackwards(){
     Motor2SetDirection(MOTOR_2_BACKWARDS);
     currentDirection = ROVER_DIRECTION_BACKWARDS;
 }
-int GetMotorDirection(){
-    return currentDirection;
-}
 
+//Converts an angle in our JSON format to degrees
 int ConvertJSONToAngle(unsigned char jsonAngle){
     int returnAngle;
     //Cut off redundant angles
@@ -159,6 +327,7 @@ int ConvertJSONToAngle(unsigned char jsonAngle){
     return returnAngle;
 }
 
+//degree conversions
 float TicksPerDegree = 6.9;
 int deg2tick(int deg){
     return (int) (deg * TicksPerDegree);
@@ -166,7 +335,13 @@ int deg2tick(int deg){
 int tick2deg(int ticks){
     return (int) (ticks / TicksPerDegree);
 }
-//float TicksPerInch = 379.425;
+int deg2tickF(float deg){
+    return (int) (deg * TicksPerDegree);
+}
+float tick2degF(int ticks){
+    return (ticks / TicksPerDegree);
+}
+//inch conversions
 float TicksPerInch = 189.713;
 int in2tick(int inches){
     return (int) (inches * TicksPerInch);
@@ -174,19 +349,89 @@ int in2tick(int inches){
 int tick2in(int ticks){
     return (int) (ticks / TicksPerInch);
 }
+int in2tickF(float inches){
+    return (int) (inches * TicksPerInch);
+}
+float tick2inF(int ticks){
+    return (ticks / TicksPerInch);
+}
+//centimeter conversions
+float TicksPerCM = 74.69;
+int cm2tick(int centimeters){
+    return (int) (centimeters * TicksPerCM);
+}
+int tick2cm(int ticks){
+    return (int) (ticks / TicksPerCM);
+}
+int cm2tickF(float centimeters){
+    return (int) (centimeters * TicksPerCM);
+}
+float tick2cmF(int ticks){
+    return (ticks / TicksPerCM);
+}
 
 
+//This function calculates the distance in inches or centimeters between two points
 int forwardOffset = 118;//This constant was determined through observation and testing
-int CalculateTicksToTravel(unsigned char distance){
+int CalculateDistanceFromPoints(int x1, int y1, int x2, int y2, bool inOrCm){
+    int ticksToReturn;
+    double distance = sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+    if (inOrCm){
+        ticksToReturn = in2tickF(distance);
+    }else{
+        ticksToReturn = cm2tickF(distance);
+    }
+    //Account for overshooting
+    ticksToReturn -= forwardOffset;
+    return ticksToReturn;
+}
+//This function calculates the angle between a vector defined by two points and 0 degrees
+int angleOffsetLeft = 52;//This constant was determined through observation and testing
+int angleOffsetRight = 32;//This constant was determined through observation and testing
+//int CalculateAngleFromPoints(int x1, int y1, int x2, int y2, float orientation){
+int CalculateAngleFromPoints(int x1, int y1, int x2, int y2){
+    int ticksToReturn;
+    double angleRad = atan2(y2 - y1, x2 - x1);
+    float angleDeg = angleRad * (180 / 3.14159);
+    ticksToReturn = deg2tickF(angleDeg);
+//    ticksToReturn -= deg2tickF(orientation);
+    //Account for overshooting
+    if (ticksToReturn > 0){
+        ticksToReturn -= angleOffsetLeft;
+    }else if (ticksToReturn < 0){
+        ticksToReturn -= angleOffsetRight;
+    }
+    return ticksToReturn;
+}
+
+//This function adjusts the angle to rotate by the current angle
+int AdjustAngleToRotate(int angleTicks, float orientation){
+    float angle = tick2degF(angleTicks);
+    angle -= orientation;
+    while (angle < -180){
+        angle = angle + 360;
+    }
+    while (angle >= 180){
+        angle = angle - 360;
+    }
+    return deg2tickF(angle);
+}
+
+
+//These functions calculate the amount of ticks needed to rotate or travel a certain distance
+int CalculateTicksToTravel(unsigned char distance, bool inOrCm){
     //Get number of ticks
-    int ticks = in2tick((int) distance);
+    int ticks;
+    if (inOrCm){
+        ticks = in2tick((int) distance);
+    }else{
+        ticks = cm2tick((int) distance);
+    }
     //Account for overshooting
     ticks -= forwardOffset;
     
     return ticks;
 }
-int angleOffsetLeft = 52;//This constant was determined through observation and testing
-int angleOffsetRight = 32;//This constant was determined through observation and testing
 int CalculateTicksToRotate(unsigned char angle){
     //Get number of ticks
 //    int angle2 = (int) (angle / 10);
@@ -359,7 +604,7 @@ void motorTestNavReceive(unsigned char receivemsg[NAV_QUEUE_BUFFER_SIZE], int *c
         //Got a distance from the test server
         Is_Testing = 1;
         *currentSpeed = ROVER_SPEED_STRAIGHT;
-        *ticksRemaining = CalculateTicksToTravel(receivemsg[TEST_NAV_DATA_IDX]);
+        *ticksRemaining = CalculateTicksToTravel(receivemsg[TEST_NAV_DATA_IDX], CALCULATE_IN_INCHES);
     }else if (ID == MOTOR_ANGLE_ID){
         //Got an angle from the test server
         Is_Testing = 1;

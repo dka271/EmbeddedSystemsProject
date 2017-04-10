@@ -82,11 +82,22 @@ extern "C" {
 // DOM-IGNORE-END 
 
 // *****************************************************************************
-// *****************************************************************************
-// Section: Type Definitions
-// *****************************************************************************
-// *****************************************************************************
+//Movement API functions
 
+//Clears any path that is currently in the queue
+void ResetMovementQueue();
+
+//Stops the current movement of the rover
+void StopMovement();
+
+//Adds a movement to the queue
+void AddMovement(int tickAmount, int direction);
+
+//Sets the goal to the movement that was just added
+void SetMovementGoal();
+
+//This function handles reading from the movement queue and starting movements
+void HandleMovementQueue();
 // *****************************************************************************
 /* Application states
 
@@ -97,6 +108,22 @@ extern "C" {
     This enumeration defines the valid application states.  These states
     determine the behavior of the application at various times.
 */
+#define STATE_WAITING_FOR_GAME_START 0
+#define STATE_LOOKING_FOR_FLAG 1
+#define STATE_ORIENTING 2
+#define STATE_MOVING 3
+
+int movementState;
+float flagAngleFromStart;
+
+//Angle between the side and corner color sensors in degrees
+#define COLOR_SENSOR_ANGLE 30
+
+//This function handles movement control when the side color sensor enters or leaves tape
+void HandleSideColorSensor();
+
+//This function handles movement control when a corner color sensor enters or leaves tape
+void HandleCornerColorSensor(int colorSensorId);
 
 typedef enum
 {

@@ -257,8 +257,8 @@ void COMMUNICATION_Tasks(void) {
 				dbgOutputLoc(DBG_LOC_COMM_IF_UART);
                 
                 //Handle receiving from Daniel's test servers
-                motorTestCommReceive(receivemsg);
-                electromagnetTestCommReceive(receivemsg);
+//                motorTestCommReceive(receivemsg);
+//                electromagnetTestCommReceive(receivemsg);
                 
                 //Handle parsing
 				if (UNIT_TESTING) {
@@ -341,7 +341,7 @@ void COMMUNICATION_Tasks(void) {
 			} else if (msgId == COMM_OTHER_ID) {
 				//Handle other stuff
                 //Handle sending to Daniel's test servers
-				motorTestCommSend(receivemsg);
+//				motorTestCommSend(receivemsg);
 			}
 		}
 	}
