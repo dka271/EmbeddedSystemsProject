@@ -72,6 +72,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #define ADC_NUM_SAMPLE_PER_AVERAGE 16
 #define PIXY_CENTER_VALUE 512
 #define PIXY_THRESHOLD_VALUE 20
+#define ADC_DELAY 25
 
 // *****************************************************************************
 // *****************************************************************************
@@ -108,7 +109,7 @@ void IntHandlerDrvAdc(void) {
 
     unsigned char sendIR1[MAP_QUEUE_BUFFER_SIZE];
     unsigned char sendUltra0[MAP_QUEUE_BUFFER_SIZE];
-    unsigned char sendPixy[MAP_QUEUE_BUFFER_SIZE];
+    unsigned char sendPixy[NAV_QUEUE_BUFFER_SIZE];
 
 
 
@@ -131,10 +132,10 @@ void IntHandlerDrvAdc(void) {
 
    
     if(!flagDetected){
-    sendPixy[MAP_SOURCE_ID_IDX] = (MAP_PIXY_CAM_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+    sendPixy[NAV_SOURCE_ID_IDX] = (NAV_OTHER_ID & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     }
-    
-    if (incr == 25) {
+    //commented out
+    if (incr == ADC_DELAY) {
 
         
         mapSendMsgFromISR(sendUltra0);
@@ -142,7 +143,7 @@ void IntHandlerDrvAdc(void) {
         
         if(!flagDetected){
             if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
-            mapSendMsgFromISR(sendPixy);
+            navSendMsgFromISR(sendPixy);
             flagDetected = true;
             }
         }
@@ -150,6 +151,8 @@ void IntHandlerDrvAdc(void) {
     } else {
         incr++;
     }
+    
+    //commented out
 
 
 
