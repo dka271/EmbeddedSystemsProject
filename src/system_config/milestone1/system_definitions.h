@@ -114,6 +114,7 @@ typedef struct
     SYS_MODULE_OBJ  drvI2C0;
     SYS_MODULE_OBJ  drvI2C1;
     SYS_MODULE_OBJ  drvI2C2;
+    SYS_MODULE_OBJ  drvI2C3;
 
 } SYSTEM_OBJECTS;
 

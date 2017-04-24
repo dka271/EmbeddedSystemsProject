@@ -140,6 +140,17 @@ const DRV_I2C_INIT drvI2C2InitData =
 };
 
 
+const DRV_I2C_INIT drvI2C3InitData =
+{
+    .i2cId = DRV_I2C_PERIPHERAL_ID_IDX3,
+    .i2cMode = DRV_I2C_OPERATION_MODE_IDX3,
+    .baudRate = DRV_I2C_BAUD_RATE_IDX3,
+    .busspeed = DRV_I2C_SLEW_RATE_CONTROL_IDX3,
+    .buslevel = DRV_I2C_SMBus_SPECIFICATION_IDX3,
+    .mstrInterruptSource = DRV_I2C_MASTER_INT_SRC_IDX3,
+    .errInterruptSource = DRV_I2C_ERR_MX_INT_SRC_IDX3,
+};
+
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_Timer Initialization Data">
 // </editor-fold>
@@ -215,6 +226,7 @@ void SYS_Initialize ( void* data )
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
     sysObj.drvI2C1 = DRV_I2C_Initialize(DRV_I2C_INDEX_1, (SYS_MODULE_INIT *)&drvI2C1InitData);
     sysObj.drvI2C2 = DRV_I2C_Initialize(DRV_I2C_INDEX_2, (SYS_MODULE_INIT *)&drvI2C2InitData);
+    sysObj.drvI2C3 = DRV_I2C_Initialize(DRV_I2C_INDEX_3, (SYS_MODULE_INIT *)&drvI2C3InitData);
 
 
     SYS_INT_VectorPrioritySet(INT_VECTOR_I2C1, INT_PRIORITY_LEVEL1);
@@ -225,6 +237,8 @@ void SYS_Initialize ( void* data )
 
     SYS_INT_VectorPrioritySet(INT_VECTOR_I2C5, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C5, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4, INT_SUBPRIORITY_LEVEL0);
 
     /* Initialize ADC */
     DRV_ADC_Initialize();

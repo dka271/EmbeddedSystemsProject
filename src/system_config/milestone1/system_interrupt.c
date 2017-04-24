@@ -138,8 +138,8 @@ void IntHandlerDrvAdc(void) {
     if (incr == ADC_DELAY) {
 
         
-        mapSendMsgFromISR(sendUltra0);
-        mapSendMsgFromISR(sendIR1);
+//        mapSendMsgFromISR(sendUltra0);
+//        mapSendMsgFromISR(sendIR1);
         
         if(!flagDetected){
             if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
@@ -299,6 +299,13 @@ void IntHandlerDrvI2CInstance1(void)
 void IntHandlerDrvI2CInstance2(void) 
 {
     DRV_I2C_Tasks(sysObj.drvI2C2);
+ 
+}       
+ 
+     
+void IntHandlerDrvI2CInstance3(void) 
+{
+    DRV_I2C_Tasks(sysObj.drvI2C3);
  
 }
 

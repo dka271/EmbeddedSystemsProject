@@ -130,14 +130,15 @@ DRV_I2C_BUFFER_HANDLE DRV_TCS_GetColors(DRV_HANDLE i2c_handle, unsigned char dat
 //Handle all communication with the color sensor
 //Sends color data to the NAV queue when the data is ready
 //Returns the current state of the communication
-int HandlerState[3];
-int PreviousState[3];
-unsigned char OnBlueTape[3];
+int HandlerState[4];
+int PreviousState[4];
+unsigned char OnBlueTape[4];
 #define COLOR_DATA_LENGTH 8
 unsigned char ColorData1[COLOR_DATA_LENGTH];
 unsigned char ColorData2[COLOR_DATA_LENGTH];
 unsigned char ColorData3[COLOR_DATA_LENGTH];
-DRV_I2C_BUFFER_HANDLE BufferHandle[3];
+unsigned char ColorData4[COLOR_DATA_LENGTH];
+DRV_I2C_BUFFER_HANDLE BufferHandle[4];
 unsigned char navMsg[NAV_QUEUE_BUFFER_SIZE];
 //unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
 int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
@@ -153,12 +154,15 @@ int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
         HandlerState[0] = STATE_WAITING_FOR_OPEN;
         HandlerState[1] = STATE_WAITING_FOR_OPEN;
         HandlerState[2] = STATE_WAITING_FOR_OPEN;
+        HandlerState[3] = STATE_WAITING_FOR_OPEN;
         PreviousState[0] = STATE_WAITING_FOR_OPEN;
         PreviousState[1] = STATE_WAITING_FOR_OPEN;
         PreviousState[2] = STATE_WAITING_FOR_OPEN;
+        PreviousState[3] = STATE_WAITING_FOR_OPEN;
         BufferHandle[0] = NULL;
         BufferHandle[1] = NULL;
         BufferHandle[2] = NULL;
+        BufferHandle[3] = NULL;
         Nop();
         return 0;
     }
@@ -359,6 +363,8 @@ int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
                     BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData2, TCS_RGBC_CLEAR_LOW_REGISTER);
                 }else if (ColorSensorNumber == COLOR_SENSOR_ID_3){
                     BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData3, TCS_RGBC_CLEAR_LOW_REGISTER);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_4){
+                    BufferHandle[ColorSensorNumber-1] = DRV_TCS_GetColors(i2c_handle, ColorData4, TCS_RGBC_CLEAR_LOW_REGISTER);
                 }
                 PreviousState[ColorSensorNumber-1] = HandlerState[ColorSensorNumber-1];
                 HandlerState[ColorSensorNumber-1] = STATE_WAITING_FOR_TRANSFER_COMPLETED;
@@ -387,6 +393,11 @@ int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
                     r = ColorData3[2] | (ColorData3[3] << 8);
                     g = ColorData3[4] | (ColorData3[5] << 8);
                     b = ColorData3[6] | (ColorData3[7] << 8);
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_4){
+                    c = ColorData4[0] | (ColorData4[1] << 8);
+                    r = ColorData4[2] | (ColorData4[3] << 8);
+                    g = ColorData4[4] | (ColorData4[5] << 8);
+                    b = ColorData4[6] | (ColorData4[7] << 8);
                 }
                 //Send information to Navigation
                 if (ColorSensorNumber == COLOR_SENSOR_ID_1){
@@ -481,6 +492,38 @@ int DRV_TCS_HandleColorSensor(DRV_HANDLE i2c_handle, int ColorSensorNumber){
                             sprintf(testServerMsg, "*{Sensor 3: Clear = %d, Red = %d, Green = %d, Blue = %d: Is Blue}~", c, r, g, b);
                         }else{
                             sprintf(testServerMsg, "*{Sensor 3: Clear = %d, Red = %d, Green = %d, Blue = %d}~", c, r, g, b);
+                        }
+//                        commSendMsgToWifiQueue(testServerMsg);
+                    }
+                    //END FOR TESTING
+                }else if (ColorSensorNumber == COLOR_SENSOR_ID_4){
+                    //Back Right Color Sensor
+                    if (ColorIsBlue(r,g,b,c)){
+                        if (OnBlueTape[3] == 0){
+                            navMsg[0] = COLOR_IS_BLUE;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_4_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[3] = 1;
+                        }
+                    }else{
+                        if (OnBlueTape[3] == 1){
+                            navMsg[0] = 0;
+                            navMsg[1] = COLOR_DATA_ID;
+                            navMsg[NAV_SOURCE_ID_IDX] = NAV_COLOR_SENSOR_4_ID_SENSOR << NAV_SOURCE_ID_OFFSET;
+                            navMsg[NAV_CHECKSUM_IDX] = navCalculateChecksum(navMsg);
+                            navSendMsg(navMsg);
+                            OnBlueTape[3] = 0;
+                        }
+                    }
+                    //FOR TESTING
+                    if (COLOR_SENSOR_SERVER_TESTING){
+                        unsigned char testServerMsg[SEND_QUEUE_BUFFER_SIZE];
+                        if (ColorIsBlue(r,g,b,c)){
+                            sprintf(testServerMsg, "*{Sensor 4: Clear = %d, Red = %d, Green = %d, Blue = %d: Is Blue}~", c, r, g, b);
+                        }else{
+                            sprintf(testServerMsg, "*{Sensor 4: Clear = %d, Red = %d, Green = %d, Blue = %d}~", c, r, g, b);
                         }
 //                        commSendMsgToWifiQueue(testServerMsg);
                     }

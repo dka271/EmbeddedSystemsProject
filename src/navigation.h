@@ -97,7 +97,7 @@ void AddMovement(int tickAmount, int direction);
 void SetMovementGoal();
 
 //This function handles reading from the movement queue and starting movements
-void HandleMovementQueue();
+bool HandleMovementQueue();
 // *****************************************************************************
 /* Application states
 
@@ -112,15 +112,16 @@ void HandleMovementQueue();
 #define STATE_LOOKING_FOR_FLAG 1
 #define STATE_ORIENTING 2
 #define STATE_MOVING 3
+#define STATE_REORIENT 4
 
 int movementState;
 float flagAngleFromStart;
 
 //Angle between the side and corner color sensors in degrees
-#define COLOR_SENSOR_ANGLE 30
+#define COLOR_SENSOR_ANGLE 29
 
 //This function handles movement control when the side color sensor enters or leaves tape
-void HandleSideColorSensor();
+void HandleSideColorSensor(int colorSensorId);
 
 //This function handles movement control when a corner color sensor enters or leaves tape
 void HandleCornerColorSensor(int colorSensorId);

@@ -364,6 +364,42 @@ _IntHandlerDrvI2CInstance2:
     .end	_IntHandlerDrvI2CInstance2
 
 
+
+/* I2C Instance 3 Interrupt */
+
+   .extern  IntHandlerDrvI2CInstance3
+
+   .section	.vector_31,code, keep
+   .equ     __vector_dispatch_31, IntVectorDrvI2CInstance3
+   .global  __vector_dispatch_31
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorDrvI2CInstance3
+
+IntVectorDrvI2CInstance3:
+    la    $26,  _IntHandlerDrvI2CInstance3         
+    jr    $26
+    nop
+	.end	IntVectorDrvI2CInstance3
+
+   .section	.DrvI2CInstance3_vector_text, code, keep
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  _IntHandlerDrvI2CInstance3
+
+_IntHandlerDrvI2CInstance3:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerDrvI2CInstance3
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	_IntHandlerDrvI2CInstance3
+
+
 /*******************************************************************************
  End of File
  */

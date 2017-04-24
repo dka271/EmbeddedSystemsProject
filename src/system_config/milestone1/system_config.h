@@ -170,8 +170,8 @@ extern "C" {
 /* I2C Driver Configuration Options
 */
 #define DRV_I2C_INTERRUPT_MODE                    		true
-#define DRV_I2C_CLIENTS_NUMBER                    		3
-#define DRV_I2C_INSTANCES_NUMBER                  		3
+#define DRV_I2C_CLIENTS_NUMBER                    		4
+#define DRV_I2C_INSTANCES_NUMBER                  		4
 
 #define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_1
 #define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
@@ -237,6 +237,29 @@ extern "C" {
 #define DRV_I2C_INT_PRIORITY_IDX2                       INT_PRIORITY_LEVEL1
 #define DRV_I2C_INT_SUB_PRIORITY_IDX2                   INT_SUBPRIORITY_LEVEL0
 #define DRV_I2C_POWER_STATE_IDX2                        SYS_MODULE_POWER_RUN_FULL
+
+#define DRV_I2C_PERIPHERAL_ID_IDX3                      I2C_ID_4
+#define DRV_I2C_OPERATION_MODE_IDX3                     DRV_I2C_MODE_MASTER
+#define DRV_SCL_PORT_IDX3                               PORT_CHANNEL_A
+#define DRV_SCL_PIN_POSITION_IDX3                       PORTS_BIT_POS_2
+#define DRV_SDA_PORT_IDX3                               PORT_CHANNEL_A
+#define DRV_SDA_PIN_POSITION_IDX3                       PORTS_BIT_POS_3
+ 
+#define DRV_I2C_BIT_BANG_IDX3                           false
+#define DRV_I2C_STOP_IN_IDLE_IDX3                       false
+#define DRV_I2C_SMBus_SPECIFICATION_IDX3                false
+#define DRV_I2C_BAUD_RATE_IDX3                          100000
+#define DRV_I2C_BRG_CLOCK_IDX3                          80000000
+#define DRV_I2C_SLEW_RATE_CONTROL_IDX3                  false
+
+#define DRV_I2C_MASTER_INT_SRC_IDX3                     INT_SOURCE_I2C_4_MASTER
+#define DRV_I2C_SLAVE_INT_SRC_IDX3                      
+#define DRV_I2C_ERR_MX_INT_SRC_IDX3                     INT_SOURCE_I2C_4_ERROR
+#define DRV_I2C_INT_VECTOR_IDX3                         INT_VECTOR_I2C4
+#define DRV_I2C_ISR_VECTOR_IDX3                         _I2C_4_VECTOR
+#define DRV_I2C_INT_PRIORITY_IDX3                       INT_PRIORITY_LEVEL1
+#define DRV_I2C_INT_SUB_PRIORITY_IDX3                   INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_POWER_STATE_IDX3                        SYS_MODULE_POWER_RUN_FULL
 
 
 // *****************************************************************************

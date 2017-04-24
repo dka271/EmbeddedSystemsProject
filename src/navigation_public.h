@@ -42,6 +42,7 @@ extern "C" {
 #define NAV_COLOR_SENSOR_1_ID_SENSOR 2
 #define NAV_COLOR_SENSOR_2_ID_SENSOR 3
 #define NAV_COLOR_SENSOR_3_ID_SENSOR 4
+#define NAV_COLOR_SENSOR_4_ID_SENSOR 8
 #define NAV_MAPPING_ID_SENSOR 5
 #define NAV_PWM_TIMER_ID 6
 #define NAV_OTHER_ID 7
@@ -49,8 +50,8 @@ extern "C" {
 #define NAV_QUEUE_BUFFER_SIZE 4
 #define NAV_CHECKSUM_IDX 3
 #define NAV_SOURCE_ID_IDX 2
-#define NAV_SOURCE_ID_MASK 0xe0
-#define NAV_SOURCE_ID_OFFSET 5
+#define NAV_SOURCE_ID_MASK 0xf0
+#define NAV_SOURCE_ID_OFFSET 4
     
 unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 
