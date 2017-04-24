@@ -122,8 +122,10 @@ void IntHandlerDrvAdc(void) {
     sendUltra0[1] = (sonarSensor0 & 0x00FF);
 
     
-     sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_2_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
-    sendUltra0[MAP_SOURCE_ID_IDX] = (MAP_ULTRASONIC_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+//     sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_2_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+     sendIR1[MAP_SOURCE_ID_IDX] = (MAP_IR_VAL & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+//    sendUltra0[MAP_SOURCE_ID_IDX] = (MAP_ULTRASONIC_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+     sendUltra0[MAP_SOURCE_ID_IDX] = (MAP_US_VAL & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
     
     if(!flagDetected){
     sendPixy[0] = (pixy & 0xFF00) >> 8;
@@ -135,11 +137,11 @@ void IntHandlerDrvAdc(void) {
     sendPixy[NAV_SOURCE_ID_IDX] = (NAV_OTHER_ID & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     }
     //commented out
-    if (incr == ADC_DELAY) {
+//    if (incr == ADC_DELAY) {
 
         
-//        mapSendMsgFromISR(sendUltra0);
-//        mapSendMsgFromISR(sendIR1);
+        mapSendMsgFromISR(sendUltra0);
+        mapSendMsgFromISR(sendIR1);
         
         if(!flagDetected){
             if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
@@ -148,9 +150,9 @@ void IntHandlerDrvAdc(void) {
             }
         }
         incr = 0;
-    } else {
-        incr++;
-    }
+//    } else {
+//        incr++;
+//    }
     
     //commented out
 

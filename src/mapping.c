@@ -61,6 +61,9 @@ unsigned char deletedObjectListTop = 0;
 object roverList[NUMBER_OF_ROVERS];
 unsigned char roverListTop = 0;
 
+unsigned short son0Out = 0;
+unsigned short ir0Out = 0;
+
 static QueueHandle_t mapQueue;
 
 
@@ -196,6 +199,7 @@ void floodFillParser() {
 void MAPPING_Tasks(void) {
     dbgOutputLoc(DBG_LOC_MAP_ENTER);
     unsigned char receivemsg[MAP_QUEUE_BUFFER_SIZE];
+    
 
     dbgOutputLoc(DBG_LOC_MAP_BEFORE_WHILE);
     DRV_ADC_Open();
@@ -245,7 +249,90 @@ void MAPPING_Tasks(void) {
                 
                 
                 
-            } else if (msgId == MAP_ULTRASONIC_ID && 0) {
+            }else if(msgId == MAP_US_VAL){
+                
+                short rec = 0;
+                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                char sonVal[RECEIVE_BUFFER_SIZE];
+
+//                float son0Dist = ((float) rec) * 10000.0;
+//                son0Dist = son0Dist - 7929.0;
+//                son0Dist = son0Dist / 14986.0;
+//                son0Out = ((unsigned short) son0Dist);
+                
+//                float son0Dist = ((float) rec) * 125.0;
+//                son0Dist = son0Dist - 2682.0;
+//                son0Dist = son0Dist * .0041951;
+//                son0Out = ((unsigned short) son0Dist);//////////////////////
+                
+                
+//                float son0Dist = ((float) rec) * 10000.0;
+//                son0Dist -= 41.0;
+//                son0Dist = son0Dist / 14231.0;
+//                son0Out = ((unsigned short) son0Dist);
+                
+                float son0Dist = ((float) rec) - 41.0;
+                son0Dist = son0Dist / 1.4231;
+                son0Out = ((unsigned short) son0Dist);
+                son0Out -= 5;
+                
+//                float son0Dist = ((float) rec) * 10.0;
+//                son0Dist = son0Dist/77.0;
+//                float frac = 237.0 / 14.0;
+//                son0Dist = son0Dist - frac;
+//                son0Out = ((unsigned short) son0Dist);
+                
+//                float son0Dist = ((float) rec) * 1.2987;
+//                son0Dist = son0Dist - 16.929;
+//                son0Out = ((unsigned short)son0Dist);
+                
+                unsigned char usVal[SEND_QUEUE_BUFFER_SIZE];
+                sprintf(usVal, "%dUU\n\r", son0Out);
+//                       sprintf(usVal, "%d\n\r", rec);
+                commSendMsgToWifiQueue(usVal);
+            
+            }
+            else if (msgId == MAP_IR_VAL){
+                short rec = 0;
+                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+                char ir0Val[RECEIVE_BUFFER_SIZE];
+                
+                
+//                float ir0Numer = 7501.53;
+//                float ir0Exp = 1000.0 / 1009.0;
+//                float ir0Denom = powf(((float) rec), ir0Exp);
+//                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
+//                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];
+                
+                
+                float ir0Numer = 40538.1;
+                ir0Numer *= 1.1;//
+                float ir0Exp = 1000.0 / 797.0;
+                float ir0Denom = powf(((float) rec), ir0Exp);
+                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
+                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];//////////
+                
+                
+//                float ir0Numer = 467252.0;
+//                float ir0Exp = 1000.0 / 517.0;
+//                float ir0Denom = powf(((float) rec), ir0Exp);
+//                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
+//                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];
+                
+                
+//                float ir0Numer = 2697.74;
+//                float ir0Exp = 1000.0 / 1167.0;
+//                float ir0Denom = powf(((float) rec), ir0Exp);
+//                ir0Out = ((unsigned short) ((2.1 * ir0Numer )/ ir0Denom));
+//                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];
+                
+                
+                sprintf(irVal, "%dII\n\r", ir0Out);
+//                sprintf(irVal, "%d\n\r", rec);
+                commSendMsgToWifiQueue(irVal);
+            
+            
+            }else if (msgId == MAP_ULTRASONIC_ID && 0) {
 
 
 //                if (MS3DEMO) {
@@ -395,19 +482,19 @@ void MAPPING_Tasks(void) {
                                 
             } else if (msgId == MAP_IR_2_ID) {
                 //Handle input from the first IR sensor
-                short rec = 0;
-                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
-                char ir0Val[RECEIVE_BUFFER_SIZE];
-
-
-                unsigned short ir0Out = 0;
-//                float ir0Numer = 7501.53;
-//                float ir0Exp = 1000.0 / 1009.0;
+//                short rec = 0;
+//                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+//                char ir0Val[RECEIVE_BUFFER_SIZE];
+//
+//
+//                unsigned short ir0Out = 0;
+////                float ir0Numer = 7501.53;
+////                float ir0Exp = 1000.0 / 1009.0;
+////                float ir0Denom = powf(((float) rec), ir0Exp);
+//                float ir0Numer = 2697.74;
+//                float ir0Exp = 1000.0 / 1167.0;
 //                float ir0Denom = powf(((float) rec), ir0Exp);
-                float ir0Numer = 2697.74;
-                float ir0Exp = 1000.0 / 1167.0;
-                float ir0Denom = powf(((float) rec), ir0Exp);
-                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
+//                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
                 
                 // update occupancy grid using y position           How much to increment by?
                 if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][ir0Out/2] != 0xffff)
