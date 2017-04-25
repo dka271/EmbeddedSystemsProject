@@ -80,6 +80,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 int incr = 0;
+bool sensorToggle = false;
 bool flagDetected = false;
 
 void IntHandlerDrvAdc(void) {
@@ -137,11 +138,17 @@ void IntHandlerDrvAdc(void) {
     sendPixy[NAV_SOURCE_ID_IDX] = (NAV_OTHER_ID & 0x00000007) << NAV_SOURCE_ID_OFFSET;
     }
     //commented out
-//    if (incr == ADC_DELAY) {
-
-        
-        mapSendMsgFromISR(sendUltra0);
-        mapSendMsgFromISR(sendIR1);
+    if (incr == ADC_DELAY) {
+        if(navStartMapping() == true){
+        if (sensorToggle) {
+            mapSendMsgFromISR(sendUltra0);
+            sensorToggle = false;
+        }
+        else {
+            mapSendMsgFromISR(sendIR1);
+            sensorToggle = true;
+        }
+        }
         
         if(!flagDetected){
             if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
@@ -150,9 +157,9 @@ void IntHandlerDrvAdc(void) {
             }
         }
         incr = 0;
-//    } else {
-//        incr++;
-//    }
+    } else {
+        incr++;
+    }
     
     //commented out
 

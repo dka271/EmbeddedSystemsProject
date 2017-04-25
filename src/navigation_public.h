@@ -55,6 +55,8 @@ extern "C" {
     
 unsigned char navCalculateChecksum(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 
+unsigned char navStartMapping();
+
 void navSendMsgFromISR(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 void navSendMsg(unsigned char msg[NAV_QUEUE_BUFFER_SIZE]);
 

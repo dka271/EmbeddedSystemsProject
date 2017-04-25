@@ -49,6 +49,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "navigation.h"
 #include "navigation_public.h"
 #include "ms2test.h"
+#include "mapping_public.h"
 
 NAVIGATION_DATA navigationData;
 
@@ -126,6 +127,7 @@ unsigned char farLine = 0;
 unsigned char midLine0Set = 0;
 unsigned char midLine1Set = 0;
 unsigned char farLineSet = 0;
+unsigned char readyToSample = 0;
 
 // *****************************************************************************
 //Movement API functions
@@ -154,6 +156,10 @@ void AddMovement(int tickAmount, int direction) {
 }
 
 //Sets the goal to the movement that was just added
+unsigned char navStartMapping(){
+    return readyToSample;
+}
+
 
 void SetMovementGoal() {
     moveGoalIdx = moveLastIdx;
@@ -326,6 +332,9 @@ void HandleSideColorSensor(int colorSensorId) {
                         SetMovementGoal();
                         orientBackwards = 0;
                         SetLocationY(3);
+                        
+                        //setbooltrue
+                        readyToSample = 1;
                         
                         
                     }
@@ -1063,7 +1072,9 @@ void NAVIGATION_Tasks(void) {
 
                     //Handle position and orientation
                     HandlePositionAndOrientation(speed1, GetMotorDirection(), CALCULATE_IN_CENTIMETERS);
-
+                     
+                    
+                    mapSetYPosition(GetLocationY());
                     //Handle Daniel's server testing
                     //                    motorTestNavSendSpeed(speed1);
                 }

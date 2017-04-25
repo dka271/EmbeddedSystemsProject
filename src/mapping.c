@@ -105,6 +105,10 @@ unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]) {
     return sum;
 }
 
+void mapSetYPosition(float yPos){
+    mappingData.rover_y_pos = ((short) yPos);
+}
+
 // get the probability of a rover at a given occupancy grid index
 // use only the 7 least significant bits of the return char
 unsigned char getRoverVal(short rowIndex, short columnIndex) {
@@ -139,7 +143,49 @@ void decrementRoverVal(short rowIndex, short columnIndex, short dec) {
     if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) > 5)
         mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] -= (dec<<8);
 }
-
+    
+char gridOut[RECEIVE_BUFFER_SIZE]; 
+void printOccupancyGridToUART() {
+    sprintf(gridOut,"yVal=%3d", mappingData.rover_y_pos);
+    commSendMsgToWifiQueue(gridOut);
+//    int iOMG;
+//    for (iOMG = 0; iOMG < 1; ++iOMG) {
+        /*sprintf(gridOut, "*%03d:%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|~", iOMG,
+                mappingData.OCCUPANCY_GRID[iOMG][ 0 ], mappingData.OCCUPANCY_GRID[iOMG][ 1 ], mappingData.OCCUPANCY_GRID[iOMG][ 2 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 3 ], mappingData.OCCUPANCY_GRID[iOMG][ 4 ], mappingData.OCCUPANCY_GRID[iOMG][ 5 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 6 ], mappingData.OCCUPANCY_GRID[iOMG][ 7 ], mappingData.OCCUPANCY_GRID[iOMG][ 8 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 9 ], mappingData.OCCUPANCY_GRID[iOMG][ 10 ], mappingData.OCCUPANCY_GRID[iOMG][ 11 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 12 ], mappingData.OCCUPANCY_GRID[iOMG][ 13 ], mappingData.OCCUPANCY_GRID[iOMG][ 14 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 15 ], mappingData.OCCUPANCY_GRID[iOMG][ 16 ], mappingData.OCCUPANCY_GRID[iOMG][ 17 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 18 ], mappingData.OCCUPANCY_GRID[iOMG][ 19 ], mappingData.OCCUPANCY_GRID[iOMG][ 20 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 21 ], mappingData.OCCUPANCY_GRID[iOMG][ 22 ], mappingData.OCCUPANCY_GRID[iOMG][ 23 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 24 ], mappingData.OCCUPANCY_GRID[iOMG][ 25 ], mappingData.OCCUPANCY_GRID[iOMG][ 26 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 27 ], mappingData.OCCUPANCY_GRID[iOMG][ 28 ], mappingData.OCCUPANCY_GRID[iOMG][ 29 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 30 ], mappingData.OCCUPANCY_GRID[iOMG][ 31 ], mappingData.OCCUPANCY_GRID[iOMG][ 32 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 33 ], mappingData.OCCUPANCY_GRID[iOMG][ 34 ], mappingData.OCCUPANCY_GRID[iOMG][ 35 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 36 ], mappingData.OCCUPANCY_GRID[iOMG][ 37 ], mappingData.OCCUPANCY_GRID[iOMG][ 38 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 39 ], mappingData.OCCUPANCY_GRID[iOMG][ 40 ], mappingData.OCCUPANCY_GRID[iOMG][ 41 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 42 ], mappingData.OCCUPANCY_GRID[iOMG][ 43 ], mappingData.OCCUPANCY_GRID[iOMG][ 44 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 45 ], mappingData.OCCUPANCY_GRID[iOMG][ 46 ], mappingData.OCCUPANCY_GRID[iOMG][ 47 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 48 ], mappingData.OCCUPANCY_GRID[iOMG][ 49 ], mappingData.OCCUPANCY_GRID[iOMG][ 50 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 51 ], mappingData.OCCUPANCY_GRID[iOMG][ 52 ], mappingData.OCCUPANCY_GRID[iOMG][ 53 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 54 ], mappingData.OCCUPANCY_GRID[iOMG][ 55 ], mappingData.OCCUPANCY_GRID[iOMG][ 56 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 57 ], mappingData.OCCUPANCY_GRID[iOMG][ 58 ], mappingData.OCCUPANCY_GRID[iOMG][ 59 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 60 ], mappingData.OCCUPANCY_GRID[iOMG][ 61 ], mappingData.OCCUPANCY_GRID[iOMG][ 62 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 63 ], mappingData.OCCUPANCY_GRID[iOMG][ 64 ], mappingData.OCCUPANCY_GRID[iOMG][ 65 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 66 ], mappingData.OCCUPANCY_GRID[iOMG][ 67 ], mappingData.OCCUPANCY_GRID[iOMG][ 68 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 69 ], mappingData.OCCUPANCY_GRID[iOMG][ 70 ], mappingData.OCCUPANCY_GRID[iOMG][ 71 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 72 ], mappingData.OCCUPANCY_GRID[iOMG][ 73 ], mappingData.OCCUPANCY_GRID[iOMG][ 74 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 75 ], mappingData.OCCUPANCY_GRID[iOMG][ 76 ], mappingData.OCCUPANCY_GRID[iOMG][ 77 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 78 ], mappingData.OCCUPANCY_GRID[iOMG][ 79 ], mappingData.OCCUPANCY_GRID[iOMG][ 80 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 81 ], mappingData.OCCUPANCY_GRID[iOMG][ 82 ], mappingData.OCCUPANCY_GRID[iOMG][ 83 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 84 ], mappingData.OCCUPANCY_GRID[iOMG][ 85 ], mappingData.OCCUPANCY_GRID[iOMG][ 86 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 87 ], mappingData.OCCUPANCY_GRID[iOMG][ 88 ], mappingData.OCCUPANCY_GRID[iOMG][ 89 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 90 ], mappingData.OCCUPANCY_GRID[iOMG][ 91 ], mappingData.OCCUPANCY_GRID[iOMG][ 92 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 93 ], mappingData.OCCUPANCY_GRID[iOMG][ 94 ], mappingData.OCCUPANCY_GRID[iOMG][ 95 ],
+                mappingData.OCCUPANCY_GRID[iOMG][ 96]);*/
+//        }   
+}
 
 //currently checks ONLY for obstacles
 /*
@@ -238,13 +284,13 @@ void MAPPING_Tasks(void) {
             } else if (msgId == MAP_PIXY_CAM_ID) {
                 
                 
-                  short rec = 0;
-                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
+//                  short rec = 0;
+//                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
                 
-                char pixyVal[RECEIVE_BUFFER_SIZE];
-                Nop();
-                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", rec, 666);
-                commSendMsgToSendQueue(pixyVal);
+//                char pixyVal[RECEIVE_BUFFER_SIZE];
+//                Nop();
+//                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", rec, 666);
+//                commSendMsgToSendQueue(pixyVal);
                 
                 
                 
@@ -253,7 +299,6 @@ void MAPPING_Tasks(void) {
                 
                 short rec = 0;
                 rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
-                char sonVal[RECEIVE_BUFFER_SIZE];
 
 //                float son0Dist = ((float) rec) * 10000.0;
 //                son0Dist = son0Dist - 7929.0;
@@ -276,26 +321,71 @@ void MAPPING_Tasks(void) {
                 son0Out = ((unsigned short) son0Dist);
                 son0Out -= 5;
                 
-//                float son0Dist = ((float) rec) * 10.0;
-//                son0Dist = son0Dist/77.0;
-//                float frac = 237.0 / 14.0;
-//                son0Dist = son0Dist - frac;
-//                son0Out = ((unsigned short) son0Dist);
+
+//                }
                 
-//                float son0Dist = ((float) rec) * 1.2987;
-//                son0Dist = son0Dist - 16.929;
-//                son0Out = ((unsigned short)son0Dist);
+                float spreadAngle = 0.4522*2;         // this is in radians, total spread of US sensor
+                // Each cell along the arc with radius son0Out must be incremented
+                // To map this to the occupancy grid, it is necessary to find each of the relevant cells
+                // The bounds and center line are easy because we have the angle of spread
+                // The intermediate locations require some sort of value to calculate how much to increment each distance calculation
+                // This incrementation value must scale with increasing radius value
+                // One possible way:
+                //      2 points along the arc that are 2 cm apart MUST be in adjacent cells
+                //      However, they may fall in the same cell (but unlikely)
+                //      One cell can be stored as history and be checked against 
+                float angIncrement = 2.0/ (float)son0Out;        // this is in radians        // make sure this is cast correctly
+                short numIncrements = son0Out * spreadAngle / 2.0;
                 
-                unsigned char usVal[SEND_QUEUE_BUFFER_SIZE];
-                sprintf(usVal, "%dUU\n\r", son0Out);
-//                       sprintf(usVal, "%d\n\r", rec);
-                commSendMsgToWifiQueue(usVal);
-            
+                // set the first row and column to consider
+                short prevR = (short)(mappingData.rover_y_pos - (float)son0Out * (float)sin(spreadAngle / 2.0)) / 2.0;
+//                short prevC = (short)(cos(spreadAngle / 2)) / 2;
+                short prevC = (short)((float)cos(spreadAngle / 2.0) * (float) son0Out) / 2.0;
+                
+                if (prevR < 0) prevR = 0;
+                if (prevC < 0) prevC = 0;
+                
+                short currR = prevR;
+                short currC = prevC;
+                incrementObstacleVal(currR, currC, 1);
+//                mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][son0Out] += 1;
+
+                
+                
+                
+                
+                
+                short iFillArc;
+                for (iFillArc = 1; iFillArc < numIncrements+1; ++iFillArc) {
+                    currR = (short)(mappingData.rover_y_pos - (float)son0Out * sin( (spreadAngle / 2.0) - angIncrement*(float)iFillArc) ) / 2;
+//                    currR = (short)(mappingData.rover_y_pos - (float)son0Out * sin(spreadAngle-angIncrement*(float)iFillArc) / 2) / 2;
+                    currC = (short)(cos( (spreadAngle / (float)2)- angIncrement*(float)iFillArc) * (float)son0Out) / 2.0;
+//                    currC = (short)(cos(spreadAngle-angIncrement*(float)iFillArc) / 2) / 2;
+
+//                    if (currR < 0) currR = 0;
+//                    if (currC < 0) currC = 0;
+                    
+                    //check if current cell is different from the previous cell
+                    if (currR != prevR || currC != prevC) {
+                        // increment existence probability
+                        if ( currR >= 0 && currC >= 0) {
+                            incrementObstacleVal(currR, currC, 1);
+                        }
+                        //decrement every cell in front of the arc
+                            //TODO
+                    }
+                    prevR = currR;
+                    prevC = currC;
+                }
+                
+                
+                printOccupancyGridToUART();
+
             }
             else if (msgId == MAP_IR_VAL){
                 short rec = 0;
                 rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
-                char ir0Val[RECEIVE_BUFFER_SIZE];
+//                char ir0Val[RECEIVE_BUFFER_SIZE];
                 
                 
 //                float ir0Numer = 7501.53;
@@ -309,10 +399,18 @@ void MAPPING_Tasks(void) {
                 ir0Numer *= 1.1;//
                 float ir0Exp = 1000.0 / 797.0;
                 float ir0Denom = powf(((float) rec), ir0Exp);
-                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));
-                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];//////////
+                ir0Out = ((unsigned short) (ir0Numer / ir0Denom));                
                 
                 
+                if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][ir0Out/2] != 0xffff)
+                    incrementRoverVal(mappingData.rover_y_pos/2, ir0Out/2, 5);
+                
+                short i;
+                for (i = 0; i <ir0Out/2; ++i) {                     //ir0Out is divided by 2 because cells are 2cm wide
+                    if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][i] != 0)
+                        decrementRoverVal(mappingData.rover_y_pos/2, i, 1);
+                }
+
 //                float ir0Numer = 467252.0;
 //                float ir0Exp = 1000.0 / 517.0;
 //                float ir0Denom = powf(((float) rec), ir0Exp);
@@ -325,11 +423,6 @@ void MAPPING_Tasks(void) {
 //                float ir0Denom = powf(((float) rec), ir0Exp);
 //                ir0Out = ((unsigned short) ((2.1 * ir0Numer )/ ir0Denom));
 //                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];
-                
-                
-                sprintf(irVal, "%dII\n\r", ir0Out);
-//                sprintf(irVal, "%d\n\r", rec);
-                commSendMsgToWifiQueue(irVal);
             
             
             }else if (msgId == MAP_ULTRASONIC_ID && 0) {
@@ -338,7 +431,7 @@ void MAPPING_Tasks(void) {
 //                if (MS3DEMO) {
                 short rec = 0;
                 rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));
-                char sonVal[RECEIVE_BUFFER_SIZE];
+//                char sonVal[RECEIVE_BUFFER_SIZE];
 
 //                float son0Dist = ((float) rec) * 10000.0;
 //                son0Dist = son0Dist - 7929.0;
@@ -480,7 +573,7 @@ void MAPPING_Tasks(void) {
 //                }
                 
                                 
-            } else if (msgId == MAP_IR_2_ID) {
+            } else if (msgId == MAP_IR_2_ID && 0) {
                 //Handle input from the first IR sensor
 //                short rec = 0;
 //                rec = ((receivemsg[0]) << 8) | ((receivemsg[1]));

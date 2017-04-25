@@ -60,6 +60,7 @@ unsigned char mapCalculateChecksum(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]);
     
 void mapSendMsgFromISR(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]);
 void mapSendMsg(unsigned char msg[MAP_QUEUE_BUFFER_SIZE]);
+void mapSetYPosition(float yPos);
 
 
     /* Provide C++ Compatibility */
