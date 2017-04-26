@@ -131,20 +131,35 @@ unsigned char getPaintVal(short rowIndex, short columnIndex) {
 }
 
 void incrementObstacleVal(short rowIndex, short columnIndex, short inc) {
-    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += inc;
+    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] & 0xff ) < (0xff-inc)) {
+        mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += inc;
+    }
+}
+
+void decrementObstacleVal(short rowIndex, short columnIndex, short inc) {
+    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] -= inc;
 }
 
 void incrementRoverVal(short rowIndex, short columnIndex, short inc) {
-    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) < 250)
-    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += (inc<<8);
+    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) < (0xff - inc)) {
+        mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] += (inc<<8);
+        printOccupancyDebug(mappingData.OCCUPANCY_GRID[rowIndex][columnIndex]);
+    }
 }
 
 void decrementRoverVal(short rowIndex, short columnIndex, short dec) {
-    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) > 5)
+    if ((mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] >> 8) > dec) {
         mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] -= (dec<<8);
+    }
 }
     
 char gridOut[RECEIVE_BUFFER_SIZE]; 
+
+void printOccupancyDebug(short inVal) {
+    sprintf(gridOut,"yVal=%4x", mappingData.rover_y_pos);
+    commSendMsgToWifiQueue(gridOut);
+}
+
 void printOccupancyGridToUART() {
     sprintf(gridOut,"yVal=%3d", mappingData.rover_y_pos);
     commSendMsgToWifiQueue(gridOut);
