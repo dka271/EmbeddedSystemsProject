@@ -992,6 +992,12 @@ void NAVIGATION_Tasks(void) {
     DRV_TCS_HandleColorSensor(NULL, COLOR_SENSOR_RESET_STATE_MACHINE);
 
 
+    StopMovement();
+    ResetMovementQueue();
+    AddMovement(in2tick(47), ROVER_DIRECTION_FORWARDS);
+    AddMovement(in2tick(47), ROVER_DIRECTION_BACKWARDS);
+    SetMovementGoal();
+    
     while (1) {
         //Block until a message is received
         dbgOutputLoc(DBG_LOC_NAV_BEFORE_RECEIVE);
@@ -1013,19 +1019,22 @@ void NAVIGATION_Tasks(void) {
 
                 //Handle path controls
                 if (HandleMovementQueue()){
-                    if (movementState == STATE_MOVING){
-                        if (currDirectionBool == 0){
-                            ResetMovementQueue();
-                            StopMovement();
-                            AddMovement(in2tick(50), ROVER_DIRECTION_FORWARDS);
-                            SetMovementGoal();
-                        }else{
-                            ResetMovementQueue();
-                            StopMovement();
-                            AddMovement(in2tick(50), ROVER_DIRECTION_BACKWARDS);
-                            SetMovementGoal();
-                        }
-                    }
+                    AddMovement(in2tick(47), ROVER_DIRECTION_FORWARDS);
+                    AddMovement(in2tick(47), ROVER_DIRECTION_BACKWARDS);
+                    SetMovementGoal();
+//                    if (movementState == STATE_MOVING){
+//                        if (currDirectionBool == 0){
+//                            ResetMovementQueue();
+//                            StopMovement();
+//                            AddMovement(in2tick(50), ROVER_DIRECTION_FORWARDS);
+//                            SetMovementGoal();
+//                        }else{
+//                            ResetMovementQueue();
+//                            StopMovement();
+//                            AddMovement(in2tick(50), ROVER_DIRECTION_BACKWARDS);
+//                            SetMovementGoal();
+//                        }
+//                    }
                 }
 
                 //Handle remaining distance
@@ -1040,18 +1049,18 @@ void NAVIGATION_Tasks(void) {
                 }
 
                 //Spin around while looking for the flag
-                if (oriented == 0 && movementState == STATE_LOOKING_FOR_FLAG) {
-                    desiredSpeed = ROVER_SPEED_SLOW;
-                    ticksRemaining = deg2tick(720);
-                }
-                else if (movingOriented == 1 && movementState == STATE_MOVING && orientBackwards == 1) {
-
-                    desiredSpeed = ROVER_SPEED_STRAIGHT;
-                    SetDirectionBackwards();
-                    ticksRemaining = in2tick(50);
-
-
-                }
+//                if (oriented == 0 && movementState == STATE_LOOKING_FOR_FLAG) {
+//                    desiredSpeed = ROVER_SPEED_SLOW;
+//                    ticksRemaining = deg2tick(720);
+//                }
+//                else if (movingOriented == 1 && movementState == STATE_MOVING && orientBackwards == 1) {
+//
+//                    desiredSpeed = ROVER_SPEED_STRAIGHT;
+//                    SetDirectionBackwards();
+//                    ticksRemaining = in2tick(50);
+//
+//
+//                }
 
                 //Ignore tape for x seconds
                 ignoreTapeCount++;
@@ -1089,7 +1098,7 @@ void NAVIGATION_Tasks(void) {
                 } else {
                     cs1OnTape = false;
                 }
-                HandleCornerColorSensor(NAV_COLOR_SENSOR_1_ID_SENSOR);
+//                HandleCornerColorSensor(NAV_COLOR_SENSOR_1_ID_SENSOR);
             } else if (msgId == NAV_COLOR_SENSOR_2_ID_SENSOR) {
                 //Handle stuff from color sensor 2
                 //Back left color sensor
@@ -1098,7 +1107,7 @@ void NAVIGATION_Tasks(void) {
                 } else {
                     cs2OnTape = false;
                 }
-                HandleCornerColorSensor(NAV_COLOR_SENSOR_2_ID_SENSOR);
+//                HandleCornerColorSensor(NAV_COLOR_SENSOR_2_ID_SENSOR);
             } else if (msgId == NAV_COLOR_SENSOR_3_ID_SENSOR) {
                 //Handle stuff from color sensor 3
                 //Back side color sensor
@@ -1107,7 +1116,7 @@ void NAVIGATION_Tasks(void) {
                 } else {
                     cs3OnTape = false;
                 }
-                HandleSideColorSensor(NAV_COLOR_SENSOR_3_ID_SENSOR);
+//                HandleSideColorSensor(NAV_COLOR_SENSOR_3_ID_SENSOR);
             } else if (msgId == NAV_COLOR_SENSOR_4_ID_SENSOR) {
                 //Handle stuff from color sensor 4
                 //Front side color sensor
@@ -1116,7 +1125,7 @@ void NAVIGATION_Tasks(void) {
                 } else {
                     cs4OnTape = false;
                 }
-                HandleSideColorSensor(NAV_COLOR_SENSOR_4_ID_SENSOR);
+//                HandleSideColorSensor(NAV_COLOR_SENSOR_4_ID_SENSOR);
             } else if (msgId == NAV_MAPPING_ID_SENSOR) {
                 //Handle stuff from the mapping queue
             } else if (msgId == NAV_PWM_TIMER_ID) {
@@ -1129,18 +1138,18 @@ void NAVIGATION_Tasks(void) {
                 }
 
                 //Handle color sensor communication state machine
-                i2cCount++;
-                if (i2cCount >= 50) {
-                    int currentState2 = DRV_TCS_HandleColorSensor(i2c1_handle, COLOR_SENSOR_ID_1);
-                    i2cCount = 0;
-                    Nop();
-                } else if (i2cCount == 25) {
-                    int currentState1 = DRV_TCS_HandleColorSensor(i2c2_handle, COLOR_SENSOR_ID_2);
-                } else if (i2cCount == 10) {
-                    int currentState3 = DRV_TCS_HandleColorSensor(i2c3_handle, COLOR_SENSOR_ID_3);
-                } else if (i2cCount == 38) {
-                    int currentState4 = DRV_TCS_HandleColorSensor(i2c4_handle, COLOR_SENSOR_ID_4);
-                }
+//                i2cCount++;
+//                if (i2cCount >= 50) {
+//                    int currentState2 = DRV_TCS_HandleColorSensor(i2c1_handle, COLOR_SENSOR_ID_1);
+//                    i2cCount = 0;
+//                    Nop();
+//                } else if (i2cCount == 25) {
+//                    int currentState1 = DRV_TCS_HandleColorSensor(i2c2_handle, COLOR_SENSOR_ID_2);
+//                } else if (i2cCount == 10) {
+//                    int currentState3 = DRV_TCS_HandleColorSensor(i2c3_handle, COLOR_SENSOR_ID_3);
+//                } else if (i2cCount == 38) {
+//                    int currentState4 = DRV_TCS_HandleColorSensor(i2c4_handle, COLOR_SENSOR_ID_4);
+//                }
                 Nop();
             } else if (msgId == NAV_OTHER_ID) {
 
@@ -1149,17 +1158,17 @@ void NAVIGATION_Tasks(void) {
                 //                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", 0, 1);
                 //                commSendMsgToSendQueue(pixyVal);
 
-                if (oriented == 0) {
-                    ResetMovementQueue();
-                    StopMovement();
-                    AddMovement(in2tick(50), ROVER_DIRECTION_FORWARDS);
-                    SetMovementGoal();
-                    ignoringTape = 1;
-                    ignoreTapeCount = 20;
-                    oriented = 1;
-                    movementState = STATE_ORIENTING;
-                    flagAngleFromStart = GetOrientation();
-                }
+//                if (oriented == 0) {
+//                    ResetMovementQueue();
+//                    StopMovement();
+//                    AddMovement(in2tick(50), ROVER_DIRECTION_FORWARDS);
+//                    SetMovementGoal();
+//                    ignoringTape = 1;
+//                    ignoreTapeCount = 20;
+//                    oriented = 1;
+//                    movementState = STATE_ORIENTING;
+//                    flagAngleFromStart = GetOrientation();
+//                }
                 //                unsigned char pixyVal[RECEIVE_BUFFER_SIZE];
                 //                
                 //                sprintf(pixyVal, "*{\"S\":\"s\",\"T\":\"v\",\"M\":\"s\",\"N\":0,\"D\":[%d,%d],\"C\":123}~\n\r", 0, 1);

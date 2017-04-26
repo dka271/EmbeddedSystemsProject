@@ -139,16 +139,16 @@ void IntHandlerDrvAdc(void) {
     }
     //commented out
     if (incr == ADC_DELAY) {
-        if(navStartMapping() == true){
+//        if(navStartMapping() == true){
         if (sensorToggle) {
-//            mapSendMsgFromISR(sendUltra0);
+            mapSendMsgFromISR(sendUltra0);
             sensorToggle = false;
         }
         else {
-//            mapSendMsgFromISR(sendIR1);
+            mapSendMsgFromISR(sendIR1);
             sensorToggle = true;
         }
-        }
+//        }
         
         if(!flagDetected){
             if(abs(pixy - PIXY_CENTER_VALUE) <= PIXY_THRESHOLD_VALUE){
