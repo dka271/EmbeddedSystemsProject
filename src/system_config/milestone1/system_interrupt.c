@@ -73,6 +73,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #define PIXY_CENTER_VALUE 512
 #define PIXY_THRESHOLD_VALUE 20
 #define ADC_DELAY 25
+#define OBJ_MAP_TIME 80//every 2 seconds
 
 // *****************************************************************************
 // *****************************************************************************
@@ -82,6 +83,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 int incr = 0;
 bool sensorToggle = false;
 bool flagDetected = false;
+unsigned char objMapCnt = 0;
+unsigned char startObjToMap[MAP_QUEUE_BUFFER_SIZE];
 
 void IntHandlerDrvAdc(void) {
     /* Clear ADC Interrupt Flag */
@@ -174,6 +177,19 @@ void IntHandlerDrvTmrInstance0(void) {
     dbgOutputLoc(DBG_LOC_TMR0_ISR_ENTER);
 
     //Sample the timer counters and send their values to the navigation queue
+    
+    if(objMapCnt == OBJ_MAP_TIME){
+        objMapCnt = 0;
+        //send to map
+        
+         startObjToMap[MAP_SOURCE_ID_IDX] = (MAP_OBJ_2_MAP_ID & (MAP_SOURCE_ID_MASK >> MAP_SOURCE_ID_OFFSET)) << MAP_SOURCE_ID_OFFSET;
+         mapSendMsgFromISR(startObjToMap);
+        
+    }
+    else{
+        objMapCnt++;
+    }
+    
     unsigned short t3 = TMR3;
     unsigned short t5 = TMR5;
     unsigned char msg2[NAV_QUEUE_BUFFER_SIZE];

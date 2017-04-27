@@ -63,7 +63,7 @@ unsigned char roverListTop = 0;
 
 unsigned short son0Out = 0;
 unsigned short ir0Out = 0;
-
+char gridOut[RECEIVE_BUFFER_SIZE]; 
 static QueueHandle_t mapQueue;
 
 
@@ -155,8 +155,108 @@ void decrementRoverVal(short rowIndex, short columnIndex, short dec) {
         mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] -= (dec<<8);
     }
 }
+
+
+
+
+
+
+void floodFillCore(short r, short c, short* bounds) {
+    if (getObstacleVal(r,c) > MAP_OBJECT_THRESHOLD              //threshold calculation to detect an obstacle
+            && getPaintVal(r,c) == 0) {                                                     //make sure you haven't traversed this cell before
+        setPaintVal(r,c);
+        
+        //bounds checking
+        if (r < bounds[0])
+            bounds[0] = r;
+        if (r > bounds[1])
+            bounds[1] = r;
+        if (c < bounds[2])
+            bounds[2] = c;
+        if (c > bounds[3]) 
+            bounds[3] = c;
+
+        
+        if (r < 126) floodFillCore(r+1, c, bounds);
+        
+        if (r > 1) floodFillCore(r-1, c, bounds);
+        
+        if (c < 96) floodFillCore(r, c+1, bounds);
+        
+        if (c > 1) floodFillCore(r, c-1, bounds);//
+
+        if (r < 126 && r < 96) floodFillCore(r+1, c+1, bounds);
+        
+        if (r > 1 && c > 1) floodFillCore(r+1, c-1, bounds);
+        
+        if (r > 1 && c < 96) floodFillCore(r-1, c+1, bounds);
+        
+        if (c > 1 && r > 1) floodFillCore(r-1, c-1, bounds);
+    }
+    // This case my not provide any optimization at all
+    // else if (occupancyGrid[r][c] & obstacleBitmask < obstacleThreshold
+            // && paint[r][c] == 0) {                                    // since this cell is not an obstacle, we can mark it as traversed
+        // paint[r][c] = 0b11111111;
+    // }
+    else {
+        // the current cell (occupancyGrid[r][c]) is painted some color already, either currColor or something else
+        // so we do fuck all
+        return;
+    }
+}
+
+
+bool getBigBounds(short* bounds){
+    if (bounds[1]-bounds[0] >=3 || bounds[3]-bounds[2] >=3)
+        return true;
+    else return false;
+}
+
+void floodFillParser() {
+    int c, r;
+    short currColor = 1;        //could be a byte, start at 1, 0=non-obstacle(background) cell
+    for (c = 0; c < 97; ++c) {
+        for (r = 0; r < 127; ++r) {
+            
+            short bounds[4] = {r,r,c,c};
+            floodFillCore((short)r,(short)c, bounds);
+            
+            if (getBigBounds(bounds)){
+                sprintf(gridOut,"bounds=%3d  %3d  %3d  %3d", bounds[0],bounds[1],bounds[2],bounds[3]);
+                commSendMsgToWifiQueue(gridOut); //print
+            }
+            //move on to the next color
+//            currColor += 1;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+//get whether grid space has been traversed. For use only by the floodfill and object creation functions
+// use only the least significant bit of the return char
+void setPaintVal(short rowIndex, short columnIndex) {
+    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] = mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] | 0x8000;
+}
+
+
+
+
+
+
+
+
+
+
+
+
     
-char gridOut[RECEIVE_BUFFER_SIZE]; 
+
 
 void printOccupancyDebug(short inVal) {
     sprintf(gridOut,"yVal=%4x", mappingData.rover_y_pos);
@@ -401,7 +501,7 @@ void MAPPING_Tasks(void) {
                 }
                 
                 
-                printOccupancyGridToUART();
+//                printOccupancyGridToUART();
 
             }
             else if (msgId == MAP_IR_VAL){
@@ -452,6 +552,18 @@ void MAPPING_Tasks(void) {
 //                unsigned char irVal[SEND_QUEUE_BUFFER_SIZE];
             
             
+            }else if(msgId == MAP_OBJ_2_MAP_ID){
+            
+            //do obj to map and send out;
+            
+                
+                floodFillParser();
+                
+                
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////                
+                
+                
+                
             }else if (msgId == MAP_ULTRASONIC_ID && 0) {
 
 
