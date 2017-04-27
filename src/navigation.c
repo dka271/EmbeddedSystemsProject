@@ -990,13 +990,14 @@ void NAVIGATION_Tasks(void) {
 
     //Init the I2C state machine
     DRV_TCS_HandleColorSensor(NULL, COLOR_SENSOR_RESET_STATE_MACHINE);
-
+ mapSetYPosition(0);
 
     StopMovement();
     ResetMovementQueue();
     AddMovement(in2tick(47), ROVER_DIRECTION_FORWARDS);
     AddMovement(in2tick(47), ROVER_DIRECTION_BACKWARDS);
     SetMovementGoal();
+    SetOrientation(90);
     
     while (1) {
         //Block until a message is received
