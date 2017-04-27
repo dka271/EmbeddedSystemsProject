@@ -206,9 +206,39 @@ void floodFillCore(short r, short c, short* bounds) {
 }
 
 
+
+
+//get whether grid space has been traversed. For use only by the floodfill and object creation functions
+// use only the least significant bit of the return char
+void clearPaintVal(short rowIndex, short columnIndex) {
+    mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] = mappingData.OCCUPANCY_GRID[rowIndex][columnIndex] & 0x7FFF;
+}
+
+
+
+
+
+void clearPaintBounds(short* bounds) {
+    int r, c;
+    for (r = bounds[0]; r <= bounds[1]; r++) {
+        for (c = bounds[2]; c <= bounds[4]; c++) {
+            clearPaintVal(r,c);
+        }
+    }
+}
+
+
+
+short biggest[4];
+
 bool getBigBounds(short* bounds){
-    if (bounds[1]-bounds[0] >=3 || bounds[3]-bounds[2] >=3)
+    if ((bounds[1]-bounds[0] > biggest[1]-biggest[0] || bounds[3]-bounds[2] > biggest[3]-biggest[2]) && bounds[0] < 122 && bounds[1] < 122 && bounds[2] < 53 && bounds[3] < 53){
+        biggest[0] = bounds[0];
+        biggest[1] = bounds[1];
+        biggest[2] = bounds[2];
+        biggest[3] = bounds[3];
         return true;
+    }
     else return false;
 }
 
@@ -220,11 +250,13 @@ void floodFillParser() {
             
             short bounds[4] = {r,r,c,c};
             floodFillCore((short)r,(short)c, bounds);
+            clearPaintBounds(bounds);
             
             if (getBigBounds(bounds)){
-                sprintf(gridOut,"bounds=%3d  %3d  %3d  %3d", bounds[0],bounds[1],bounds[2],bounds[3]);
+                sprintf(gridOut,"biggest=%3d  %3d  %3d  %3d", biggest[0],biggest[1],biggest[2],biggest[3]);
                 commSendMsgToWifiQueue(gridOut); //print
-            }
+            }//print
+            
             //move on to the next color
 //            currColor += 1;
         }
@@ -469,7 +501,7 @@ void MAPPING_Tasks(void) {
                 
                 short currR = prevR;
                 short currC = prevC;
-                incrementObstacleVal(currR, currC, 1);
+                incrementObstacleVal(currR, currC, 5);
 //                mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][son0Out] += 1;
 
                 
@@ -528,8 +560,8 @@ void MAPPING_Tasks(void) {
                 
                 
                 if (mappingData.OCCUPANCY_GRID[mappingData.rover_y_pos/2][ir0Out/2] != 0xffff) {
-                    incrementRoverVal(mappingData.rover_y_pos/2, ir0Out/2, 50);
-                    incrementObstacleVal(mappingData.rover_y_pos/2, ir0Out/2, 5);
+                    incrementRoverVal(mappingData.rover_y_pos/2, ir0Out/2, 25);
+                    incrementObstacleVal(mappingData.rover_y_pos/2, ir0Out/2, 25);
                 }
                 
 //                short i;
